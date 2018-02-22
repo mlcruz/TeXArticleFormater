@@ -1,5 +1,5 @@
 import regex
-###
+
 class TeXIO(object):
     """Implements tex file IO and diff checking"""
 
