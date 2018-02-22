@@ -76,10 +76,11 @@ class Article(TeXIO):
         
         #Initializes bibliography object
         self.bib_data = BibData(self.current_bib_data)
-
+        
         #Initializes type dictionary
         self.cit_type_dict =  {"article":article,"book":book,"booklet":booklet,"conference":conference,"inbook":inbook,"incollection":incollection,"manual":manual, "mastersthesis":mastersthesis,"misc":misc,"phdthesis":phdthesis,"proceedings":proceedings,"inproceedings":inproceedings,"techreport":techreport,"report":report,"unpublished":unpublished,"online":online}
-
+        
+        #
 
 
 class GenericTex(object):
