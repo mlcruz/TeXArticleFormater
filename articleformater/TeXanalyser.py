@@ -3,9 +3,6 @@ import regex
 class TeXIO(object):
     """Implements tex file IO and diff checking"""
 
-
-
-
     def __init__(self,tex_file_location,bib_file_location):
         """Create lists containing Tex/Bib file data from file"""
         
@@ -84,8 +81,8 @@ class BibData(GenericTex):
     mastersthesis = ["title","author","school","year","address"]
     misc = ["author","title","howpublished","month","year","note"]
     phdthesis = ["author","title","school","year","address"]
-    proceedings = ["author","title","year","editor","volume","series","address","month","organization","publisher"]
-    inproceedings = ["author","title","year","editor","volume","series","address","month","organization","publisher"]
+    proceedings = ["author","booktitle","title","year","editor","volume","series","address","month","organization","publisher"]
+    inproceedings = ["author","booktitle","title","year","editor","volume","series","address","month","organization","publisher"]
     techreport =["author","title","institution","year","number","address"]
     report =["author","title","institution","year","number","address"]
     unpublished =["author","title","note","month","year"]
@@ -99,25 +96,33 @@ class BibData(GenericTex):
 
 
     def __init__(self, received_data):
-        """Creates a list of citation objects with raw bibliograpy data in a list"""
+        """Populates a list of citation objects with the bibliography file data"""
 
-
+        #variable for loop control. 0 = in the block ; 1 = end of block; 2 = outside of the block. 
         self.end_of_cite = 0
+
+        #Block that is being currently initialized
         self.cite_block =[]
         self.cite_block_library =[]
 
         for line in received_data:
-            print("welp")
+            
             #If the line starts an entry, begin another block
             if (regex.match(r'@\w+(?={)',line,regex.IGNORECASE)):
                 self.end_of_cite = 0
                 print("match")
+
+            #If the line ends in a block terminator(last } in the entry), change variable state to end of block
             if regex.match(r'(?<!(\d|\w|\.|,))}(?=\n)',line,regex.IGNORECASE):
                 self.end_of_cite = 1
+
+            
             if(self.end_of_cite == 0):
                 self.cite_block.append(line)
-            if(self.end_of_cite == 1):
+
+            elif(self.end_of_cite == 1):
                 self.cite_block.append(line)
+                #discard empty text
                 if (self.cite_block[0] == '\n'):
                     print("discarded")
                     self.cite_block = []
@@ -136,36 +141,50 @@ class TexData(GenericTex):
 class Citation(object):
 
         
-    """Data structures  and formating for each reference """
+    """Citations represent a single reference entry in a bibliography file."""
     
     def __init__(self, cit_data, cit_dict):
+        """Initiliazes the citation object with raw text data in a list from a single bibliography entry and a dictionary with the allowed attributes for each type of entry.
+        and populates the attribute_data_dict dictionary with the data(key=citation type;Value=camp value(searched with the gen_regex_pattern function)""" 
+        
+        
         self.REGEX_FLAGS = regex.IGNORECASE|regex.MULTILINE|regex.UNICODE|regex.V1
-        self.bib_data_string = ""
+
         self.cit_data = cit_data
         self.cit_dict = cit_dict
-        #Tries to search for citation type. matches every word after @ and before {
+        
+        
+        self.removed_camps = []
+        
+       #Tries to search for citation type. matches every word after @ and before {
         self.type_pattern = regex.compile(r"@\K\b\w+(?<=)",self.REGEX_FLAGS)
 
         #Tries to search for label value. Matches every word-num in after the (@w+{) ending in a comma
         self.cite_label_pattern = regex.compile(r"@\w+{\K[\w +\d]+(?<!,$)",(self.REGEX_FLAGS))
 
-        #Searches for article type
+        #Searches for citation type
         self.citation_type = regex.findall(self.type_pattern,cit_data[0])[0]
 
-        #Creates list with allowed citation camps
+        #Creates list with allowed citation camp attributes
         self.cit_allowed_list = self.cit_dict[self.citation_type.lower()]
 
+        #Tries to search for camp attribute value(title, author etc.)
+        self.cit_attribute_pattern = regex.compile(r"^[\w \s]*\w+",regex.IGNORECASE)
 
         #Creates dictionary using allowed item types as keys and the respective camp value in the citation data
         self.attribute_data_dict = {
             type:[self.gen_regex_pattern(type).match(x).captures()[0][0] for x in self.cit_data if self.gen_regex_pattern(type).match(x)] for type in self.cit_allowed_list}
-            
+        
+        
+        for line in cit_data:
+            if (bool(self.cit_attribute_pattern.match(line)) and (self.cit_attribute_pattern.match(line).captures()[0].lower().strip() not in self.cit_allowed_list)):
+                self.removed_camps.append(line)
 
     def gen_regex_pattern(self,cit_type):
         """ Generates regex string with the type passed to the function to search for text inside  brtackets from cit_type={} in each citation camp"""
 
-        #Strings to generate regex to to search for cit_type value. Matches everything after author= and before ,} or '',
-
+        #Strings to generate regex to to search for citation camp data value value. Matches everything after {camp}= and before ,} or '',
+        #Note:regex_gen not working yet with comments after the block terminator
         self.regex_gen_part1 = r'((( |\t)*'
         self.regex_gen_part2 = r')[ =]+)[{"]\K.+(?=((}|")(,|\n)$))'
         return regex.compile("{0}{1}{2}".format(self.regex_gen_part1,cit_type,self.regex_gen_part2),self.REGEX_FLAGS)
@@ -183,4 +202,3 @@ class PreambleData(GenericTex):
 dados = Article("article_3.tex","Bibliografia.bib")
 #a = Citation(dados.current_bib_data)
 
-print ("WELP")
