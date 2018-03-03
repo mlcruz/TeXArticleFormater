@@ -53,8 +53,54 @@ class Article(TeXIO):
         self.preamble_data = PreambleData(self.current_tex_data[:preamble_found])
         self.tex_data = TexData(self.current_tex_data[preamble_found:])
         
-        #Initializes bibliography object
+        #Merge multiline entries in bibliography file
+        self.current_bib_data = (self.merge_lines(self.current_bib_data))
+
+        #Initializes bibliography object with
         self.bib_data = BibData(self.current_bib_data)
+
+    def merge_lines(self,a_file):
+        """Merge multiline atributes in a bib file in a single line"""
+        #Temp holder for non-terminated lines
+        line_holder =""
+        
+        #line appended state; 0 = not appended, 1 = appended
+        line_appended = 0
+
+        #list to be returned by the function
+        single_line_list = []
+
+        for line in a_file:
+            #matches every line terminated by , } " 
+            if regex.match(r'^.*([,\"}])\s*$',line):
+
+                #if its a appended line, strips left side whitespaces and tabs
+                if line_appended == 1:
+                    line_striped = line.lstrip()
+                else:
+                    line_striped = line
+
+                #Adds line to line_holder if its a terminated line.
+                line_holder = '{0}{1}'.format(line_holder,line_striped)
+                #appends terminated line to list
+                single_line_list.append(line_holder)
+                #clear line holder
+                line_holder = ""
+                
+                line_appended = 0
+                
+            else:
+                #if the line is not matched, its a non-terminated line
+                #append line to temporary line holder
+                line_holder = '{0}{1}'.format(line_holder,line.rstrip('\n'))
+                line_appended = 1
+        
+        return single_line_list
+
+
+
+            
+
         
         
         #
@@ -173,9 +219,9 @@ class Citation(object):
 
         #Creates dictionary using allowed item types as keys and the respective camp value in the citation data
         self.attribute_data_dict = {
-            type:[self.gen_regex_pattern(type).match(x).captures()[0][0] for x in self.cit_data if self.gen_regex_pattern(type).match(x)] for type in self.cit_allowed_list}
+            type:([self.gen_regex_pattern(type).match(x).captures()[0] for x in self.cit_data if self.gen_regex_pattern(type).match(x)]) for type in self.cit_allowed_list}
         
-        
+        #Populate removed camps list
         for line in cit_data:
             if (bool(self.cit_attribute_pattern.match(line)) and (self.cit_attribute_pattern.match(line).captures()[0].lower().strip() not in self.cit_allowed_list)):
                 self.removed_camps.append(line)
@@ -199,6 +245,6 @@ class PreambleData(GenericTex):
 
 
 
-dados = Article("article_3.tex","Bibliografia.bib")
+dados = Article("article_3.tex","Bibliografia2.bib")
 #a = Citation(dados.current_bib_data)
 
