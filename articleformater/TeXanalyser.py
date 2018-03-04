@@ -56,8 +56,10 @@ class Article(TeXIO):
         #Merge multiline entries in bibliography file
         self.current_bib_data = (self.merge_lines(self.current_bib_data))
 
-        #Initializes bibliography object with
+        #Initializes bibliography object with bibliography data
         self.bib_data = BibData(self.current_bib_data)
+
+        
 
     def merge_lines(self,a_file):
         """Merge multiline atributes in a bib file in a single line"""
@@ -97,15 +99,6 @@ class Article(TeXIO):
         
         return single_line_list
 
-
-
-            
-
-        
-        
-        #
-
-
 class GenericTex(object):
     """Generic class implementing IO and diff checking to be inherited by BibData/TexData/PreambleData objects"""
     
@@ -122,7 +115,7 @@ class BibData(GenericTex):
     booklet =["title","author","howpublished","address","month","year"]
     conference = ["author","title","year","editor","volume","series","pages","address","publisher"]
     inbook = ["author","title","chapter","pages","publisher","year","volume","series","address","edition"]
-    incollection = ["author","title","publisher","year","editor","volume","series","chapter","pages","address","edition"]
+    incollection = ["author","title","booktitle","publisher","year","editor","volume","series","chapter","pages","address","edition"]
     manual = ["title","author","organization","address","edition","month","year"]
     mastersthesis = ["title","author","school","year","address"]
     misc = ["author","title","howpublished","month","year","note"]
@@ -176,6 +169,44 @@ class BibData(GenericTex):
                     self.cite_block_library.append(Citation(self.cite_block,self.cit_type_dict))
                     self.cite_block = []
 
+
+        
+    def generate_writable_bib_object(self):
+        
+        missing_tag = "N/A"
+        """Creates list containing a bibliography file text data with the current cite_block_library data"""
+        file_data = []
+        for citation in self.cite_block_library:
+            #Write the first fixed line of each citation with type and label
+            current_line = "@{0}{{{1},{2}".format(citation.citation_type,citation.label_name,'\n')
+            file_data.append(current_line)
+
+            #Write attribute data dict
+            for key, value in citation.attribute_data_dict.items():
+                if bool(value):
+                    current_line = "\t{0} = {{{1}}},{2}".format(key,value[0],"\n")
+                else:
+                    current_line = "\t{0} = {{{1}}},{2}".format(key,missing_tag,"\n")
+
+                file_data.append(current_line)
+           
+            #Write removed data as comments
+            for line in citation.removed_camps:
+                current_line = "{0}%{1}{2}".format("\t",line.strip(),"\n")
+                file_data.append(current_line)
+
+            #Close citation camp
+            current_line = "}}{0}".format("\n")
+            file_data.append(current_line)
+            file_data.append("\n")
+
+        return file_data
+
+
+
+            
+
+
     
 
 class TexData(GenericTex):
@@ -202,19 +233,23 @@ class Citation(object):
         
         self.removed_camps = []
         
-       #Tries to search for citation type. matches every word after @ and before {
+       #pattern to search for citation type. matches every word after @ and before {
         self.type_pattern = regex.compile(r"@\K\b\w+(?<=)",self.REGEX_FLAGS)
 
-        #Tries to search for label value. Matches every word-num in after the (@w+{) ending in a comma
-        self.cite_label_pattern = regex.compile(r"@\w+{\K[\w +\d]+(?<!,$)",(self.REGEX_FLAGS))
+        #pattern to search for label value. Matches every word-num in after the (@w+{) ending in a comma
+        self.label_pattern = regex.compile(r"@\w+{\K[\w \d \:]+(?<!,$)",(self.REGEX_FLAGS))
 
         #Searches for citation type
         self.citation_type = regex.findall(self.type_pattern,cit_data[0])[0]
 
+        #Searches for label name
+
+        self.label_name = regex.findall(self.label_pattern,cit_data[0])[0]
+
         #Creates list with allowed citation camp attributes
         self.cit_allowed_list = self.cit_dict[self.citation_type.lower()]
 
-        #Tries to search for camp attribute value(title, author etc.)
+        #Pattern to search for camp attribute value(title, author etc.)
         self.cit_attribute_pattern = regex.compile(r"^[\w \s]*\w+",regex.IGNORECASE)
 
         #Creates dictionary using allowed item types as keys and the respective camp value in the citation data
@@ -245,6 +280,9 @@ class PreambleData(GenericTex):
 
 
 
-dados = Article("article_3.tex","Bibliografia2.bib")
+dados = Article("article_3.tex","ref123.bib")
+dados.current_bib_data = dados.bib_data.generate_writable_bib_object()
+dados.write_bib()
+
 #a = Citation(dados.current_bib_data)
 
