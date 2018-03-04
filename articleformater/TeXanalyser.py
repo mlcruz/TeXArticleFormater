@@ -202,6 +202,29 @@ class BibData(GenericTex):
 
         return file_data
 
+    def cull_useless(self,tex_cited):
+        """"returns every citation in bibliography file and in the received list"""
+
+        culled_list = []
+
+        for item in self.cite_block_library:
+            if item.label_name in tex_cited:
+                culled_list.append(item)
+
+        return culled_list
+
+
+
+
+
+
+
+        
+
+
+
+
+
 
 
             
@@ -212,7 +235,20 @@ class BibData(GenericTex):
 class TexData(GenericTex):
     
     def __init__(self, received_data):
-        return super().__init__(received_data)
+        super().__init__(received_data)
+        #pattern to serach for cited objects
+        self.cite_pattern = regex.compile(r"\\cite{\K[\d \w \:]+",regex.IGNORECASE)
+        
+        #List of cited objects
+        self.cited_list = []
+
+        for line in self.received_data:
+            if bool(regex.findall(self.cite_pattern,line)):
+                for item in regex.findall(self.cite_pattern,line):
+                    self.cited_list.append(item)
+
+
+
 
 
 class Citation(object):
@@ -280,7 +316,8 @@ class PreambleData(GenericTex):
 
 
 
-dados = Article("article_3.tex","ref123.bib")
+dados = Article("article_3.tex","Bibliografia2.bib")
+dados.bib_data.cite_block_library = dados.bib_data.cull_useless(dados.tex_data.cited_list)
 dados.current_bib_data = dados.bib_data.generate_writable_bib_object()
 dados.write_bib()
 
