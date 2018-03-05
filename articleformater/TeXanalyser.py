@@ -9,14 +9,30 @@ class TeXIO(object):
         self.tex_file_location = tex_file_location
         self.bib_file_location = bib_file_location
 
-        #reads Tex/Bib file and push to list. 
-        with open(tex_file_location,"r",encoding="utf8") as tex_reader:
-            self.original_tex_data = tex_reader.readlines()
-            self.current_tex_data = self.original_tex_data
+        #reads Tex/Bib file, #Handles utf8/latin1 encoding and push to list. 
+        try:        
+            with open(tex_file_location,"r",encoding="utf8") as tex_reader:
+                self.original_tex_data = tex_reader.readlines()
+                self.current_tex_data = self.original_tex_data
+        
+        
+        except UnicodeDecodeError:
+            print("Error: Not unicode - Trying Latin1 Decoding")
+            with open(tex_file_location,"r",encoding="latin-1") as tex_reader:
+                self.original_tex_data = tex_reader.readlines()
+                self.current_tex_data = self.original_tex_data
+                
+        try:
+            with open(bib_file_location,"r",encoding="utf8") as bib_reader:
+                self.original_bib_data = bib_reader.readlines()
+                self.current_bib_data = self.original_bib_data
+        except UnicodeDecodeError:
+            print("Error: Not unicode - Trying Latin1 Decoding")
+            with open(tex_file_location,"r",encoding="latin-1") as bib_reader:
+                self.original_bib_data = bib_reader.readlines()
+                self.current_bib_data = self.original_bib_data
 
-        with open(bib_file_location,"r",encoding="utf8") as bib_reader:
-            self.original_bib_data = bib_reader.readlines()
-            self.current_bib_data = self.original_bib_data
+
 
 
     def write_bib(self):
@@ -143,13 +159,20 @@ class BibData(GenericTex):
         #Block that is being currently initialized
         self.cite_block =[]
         self.cite_block_library =[]
+        label_pattern = regex.compile(r"@\w+{\K[\w \d \:]+(?<!,$)",regex.IGNORECASE)
+
 
         for line in received_data:
             
             #If the line starts an entry, begin another block
-            if (regex.match(r'@\w+(?={)',line,regex.IGNORECASE)):
+            matched = regex.match(r'@\w+(?={)',line,regex.IGNORECASE)
+            matched_label = regex.match(label_pattern,line)
+
+
+            if (bool(matched)):
+                
                 self.end_of_cite = 0
-                print("match")
+                print("matched - type : {0}, label : {1}".format(matched.captures()[0],matched_label.captures()[0]))
 
             #If the line ends in a block terminator(last } in the entry), change variable state to end of block
             if regex.match(r'(?<!(\d|\w|\.|,))}(?=\n)',line,regex.IGNORECASE):
@@ -210,6 +233,8 @@ class BibData(GenericTex):
         for item in self.cite_block_library:
             if item.label_name in tex_cited:
                 culled_list.append(item)
+            else:
+                print("Removed {0}".format(item.label_name))
 
         return culled_list
 
@@ -283,7 +308,11 @@ class Citation(object):
         self.label_name = regex.findall(self.label_pattern,cit_data[0])[0]
 
         #Creates list with allowed citation camp attributes
-        self.cit_allowed_list = self.cit_dict[self.citation_type.lower()]
+        try:
+            self.cit_allowed_list = self.cit_dict[self.citation_type.lower()]
+        except KeyError as err:
+            print("!!-----Citation type unknown:{0}, defaulting as MISC-----!!".format(str(err)))
+            self.cit_allowed_list = self.cit_dict['misc']
 
         #Pattern to search for camp attribute value(title, author etc.)
         self.cit_attribute_pattern = regex.compile(r"^[\w \s]*\w+",regex.IGNORECASE)
@@ -296,6 +325,7 @@ class Citation(object):
         for line in cit_data:
             if (bool(self.cit_attribute_pattern.match(line)) and (self.cit_attribute_pattern.match(line).captures()[0].lower().strip() not in self.cit_allowed_list)):
                 self.removed_camps.append(line)
+                print("-removed {0} from {1}".format(line.strip(),self.label_name))
 
     def gen_regex_pattern(self,cit_type):
         """ Generates regex string with the type passed to the function to search for text inside  brtackets from cit_type={} in each citation camp"""
@@ -314,12 +344,11 @@ class PreambleData(GenericTex):
     def __init__(self, received_data):
         return super().__init__(received_data)
 
+while(input("Continue? \n0=No\n1=Yes\n") != "0"):
+    remove_entries = input("Remove entries not cited?\n0 = no \n1 = yes\n\n")
+    dados = Article(input("tex location: "),input("bib location: "))
+    if remove_entries == "1":
+        dados.bib_data.cite_block_library = dados.bib_data.cull_useless(dados.tex_data.cited_list)
 
-
-dados = Article("article_3.tex","Bibliografia2.bib")
-dados.bib_data.cite_block_library = dados.bib_data.cull_useless(dados.tex_data.cited_list)
-dados.current_bib_data = dados.bib_data.generate_writable_bib_object()
-dados.write_bib()
-
-#a = Citation(dados.current_bib_data)
-
+    dados.current_bib_data = dados.bib_data.generate_writable_bib_object()
+    dados.write_bib()
