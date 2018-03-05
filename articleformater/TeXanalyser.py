@@ -365,7 +365,7 @@ class Citation(object):
             if (bool(self.cit_attribute_pattern.match(line)) and (self.cit_attribute_pattern.match(line).captures()[0].lower().strip() not in self.cit_allowed_list)):
                 self.removed_camps.append(line)
                 print(colorama.Fore.GREEN+"-removed {0} from {1}".format(line.strip(),self.label_name) + colorama.Style.RESET_ALL)
-                log_file_data.append("-removed {0} from {1}\n")
+                log_file_data.append("-removed {0} from {1}\n".format(line.strip(),self.label_name))
 
     def gen_regex_pattern(self,cit_type):
         """ Generates regex string with the type passed to the function to search for text inside  brtackets from cit_type={} in each citation camp"""
