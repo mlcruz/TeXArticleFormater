@@ -262,3 +262,5 @@ __pycache__/
 *.tex
 *.bib
 articleformater/Resultados testes.txt
+*.tex
+*.bib
