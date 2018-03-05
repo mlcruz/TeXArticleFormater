@@ -4,7 +4,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>cb5d1251-402e-438d-bb5e-835eb97d9b6b</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>TeXanalyser.py</StartupFile>
+    <StartupFile>menu.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -21,7 +21,9 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="articleformater.py" />
+    <Compile Include="menu.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="TeXanalyser.py" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
