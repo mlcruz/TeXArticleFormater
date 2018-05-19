@@ -8,8 +8,8 @@ import os
 colorama.init()
 
 
-used_options = {"file_input":"dialog","uncited":"no","save_name":"default(file_new.tex)","terminator":"N/A","log_name":"default(file.log)"}
-unused_options ={"file_input":"console", "uncited":"yes","save_name":"open save dialog","log_name":"open save dialog"}
+used_options = {"file_input":"dialog","uncited":"no","save_name":"default(file_new.tex)","terminator":"N/A","log_name":"default(file.log)","comment_removed":"no"}
+unused_options ={"file_input":"console", "uncited":"yes","save_name":"open save dialog","log_name":"open save dialog","comment_removed":"yes"}
 restart = '0'
 
 print(colorama.Fore.CYAN + colorama.Style.BRIGHT + "Options:\n")
@@ -18,6 +18,7 @@ print(colorama.Style.BRIGHT + colorama.Fore.GREEN + "2)Remove uncited bibliograp
 print(colorama.Style.BRIGHT + colorama.Fore.GREEN + "3)New file name: " + colorama.Fore.LIGHTYELLOW_EX + "{0}".format(used_options["save_name"]) + " / " + colorama.Style.DIM +colorama.Fore.LIGHTBLACK_EX + "{0}".format(unused_options["save_name"]))
 print(colorama.Style.BRIGHT + colorama.Fore.GREEN + "4)Missing entry text: " + colorama.Fore.LIGHTYELLOW_EX + "{0}".format(used_options["terminator"]))
 print(colorama.Style.BRIGHT + colorama.Fore.GREEN + "5)Log file name: " + colorama.Fore.LIGHTYELLOW_EX + "{0}".format(used_options["log_name"]) + " / " + colorama.Style.DIM +colorama.Fore.LIGHTBLACK_EX + "{0}".format(unused_options["log_name"]))
+print(colorama.Style.BRIGHT + colorama.Fore.GREEN + "6)Comment removed fields: " + colorama.Fore.LIGHTYELLOW_EX + "{0}".format(used_options["comment_removed"]) + " / " + colorama.Style.DIM +colorama.Fore.LIGHTBLACK_EX + "{0}".format(unused_options["comment_removed"]))
 
 print(colorama.Style.BRIGHT + colorama.Fore.CYAN + "\nEnter a number to change options or 0 to continue" + colorama.Style.RESET_ALL)
 
@@ -36,6 +37,9 @@ while (restart == '0'):
             used_options["terminator"] = input("Enter new text: ")
         elif user_input == "5":
             (used_options["log_name"],unused_options["log_name"]) = (unused_options["log_name"],used_options["log_name"])
+        elif user_input =="6":
+            (used_options["comment_removed"],unused_options["comment_removed"]) = (unused_options["comment_removed"],used_options["comment_removed"])
+
 
 
 
@@ -49,6 +53,8 @@ while (restart == '0'):
         print(colorama.Style.BRIGHT + colorama.Fore.GREEN + "3)New file name: " + colorama.Fore.LIGHTYELLOW_EX + "{0}".format(used_options["save_name"]) + " / " + colorama.Style.DIM +colorama.Fore.LIGHTBLACK_EX + "{0}".format(unused_options["save_name"]))
         print(colorama.Style.BRIGHT + colorama.Fore.GREEN + "4)Missing entry text: " + colorama.Fore.LIGHTYELLOW_EX + "{0}".format(used_options["terminator"]))
         print(colorama.Style.BRIGHT + colorama.Fore.GREEN + "5)Log file name: " + colorama.Fore.LIGHTYELLOW_EX + "{0}".format(used_options["log_name"]) + " / " + colorama.Style.DIM +colorama.Fore.LIGHTBLACK_EX + "{0}".format(unused_options["log_name"]))
+        print(colorama.Style.BRIGHT + colorama.Fore.GREEN + "6)Comment removed fields: " + colorama.Fore.LIGHTYELLOW_EX + "{0}".format(used_options["comment_removed"]) + " / " + colorama.Style.DIM +colorama.Fore.LIGHTBLACK_EX + "{0}".format(unused_options["comment_removed"]))
+
 
         print(colorama.Style.BRIGHT + colorama.Fore.CYAN + "\nEnter a number to change options or 0 to continue" + colorama.Style.RESET_ALL)
 
@@ -66,7 +72,10 @@ while (restart == '0'):
     if used_options["uncited"] == "yes":
         dados.bib_data.cite_block_library = dados.bib_data.cull_useless(dados.tex_data.cited_list)
 
-    dados.current_bib_data = dados.bib_data.generate_writable_bib_object(used_options["terminator"])
+    if used_options["comment_removed"] == "yes":
+        dados.current_bib_data = dados.bib_data.generate_writable_bib_object(used_options["terminator"],1)
+    else:
+        dados.current_bib_data = dados.bib_data.generate_writable_bib_object(used_options["terminator"],0)
 
     if used_options["save_name"] == "default(file_new.tex)":
         dados.write_bib()

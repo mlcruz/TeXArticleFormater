@@ -206,7 +206,7 @@ class BibData(GenericTex):
                 print("matched - type: {0}, label: {1}".format(matched.captures()[0],matched_label.captures()[0]))
 
             #If the line ends in a block terminator(last } in the entry), change variable state to end of block
-            if regex.match(r'(?<!(\d|\w|\.|,))}\s*(?=\n)',line,regex.IGNORECASE):
+            if regex.match(r'(?<!(\d|\w|\.|,))[\s]*}\s*(?=\n)',line,regex.IGNORECASE):
                 self.end_of_cite = 1
 
             
@@ -225,7 +225,7 @@ class BibData(GenericTex):
 
 
         
-    def generate_writable_bib_object(self,tag="N/A"):
+    def generate_writable_bib_object(self,tag="N/A",comment=0):
         
         missing_tag = tag
         """Creates list containing a bibliography file text data with the current cite_block_library data"""
@@ -244,10 +244,12 @@ class BibData(GenericTex):
 
                 file_data.append(current_line)
            
+            if(comment == 1):
             #Write removed data as comments
-            # for line in citation.removed_camps:
-            #   current_line = "{0}%{1}{2}".format("\t",line.strip(),"\n")
-            #   file_data.append(current_line)
+                for line in citation.removed_camps:
+                    current_line = "{0}%{1}{2}".format("\t",line.strip(),"\n")
+                    file_data.append(current_line)
+
                 
             #Close citation camp
             current_line = "}}{0}".format("\n")
