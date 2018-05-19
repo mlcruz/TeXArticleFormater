@@ -69,7 +69,13 @@ class TeXIO(object):
 
 
     def write_log(self,dialog=0):
-        with open (self.log_file_location,"w",encoding="utf8") as log_writer:
+
+        if dialog == 0:
+            new_file_location = (("{0}_{1}").format(((self.log_file_location).split(".")[0]).lower(),".log"))
+        else:
+            new_file_location = self.log_file_location
+
+        with open (new_file_location,"w",encoding="utf8") as log_writer:
             for line in log_file_data:
                 log_writer.write(line)
 
@@ -189,8 +195,9 @@ class BibData(GenericTex):
         for line in received_data:
             
             #If the line starts an entry, begin another block
-            matched = regex.match(r'@\w+(?={)',line,regex.IGNORECASE)
-            matched_label = regex.match(label_pattern,line)
+            matched = regex.match(r'[\s]*@\w+(?={)',line,regex.IGNORECASE)
+            matched_label = regex.match(label_pattern,line.lstrip())
+            
 
 
             if (bool(matched)):
@@ -199,7 +206,7 @@ class BibData(GenericTex):
                 print("matched - type: {0}, label: {1}".format(matched.captures()[0],matched_label.captures()[0]))
 
             #If the line ends in a block terminator(last } in the entry), change variable state to end of block
-            if regex.match(r'(?<!(\d|\w|\.|,))}(?=\n)',line,regex.IGNORECASE):
+            if regex.match(r'(?<!(\d|\w|\.|,))}\s*(?=\n)',line,regex.IGNORECASE):
                 self.end_of_cite = 1
 
             
@@ -238,10 +245,10 @@ class BibData(GenericTex):
                 file_data.append(current_line)
            
             #Write removed data as comments
-            for line in citation.removed_camps:
-                current_line = "{0}%{1}{2}".format("\t",line.strip(),"\n")
-                file_data.append(current_line)
-
+            # for line in citation.removed_camps:
+            #   current_line = "{0}%{1}{2}".format("\t",line.strip(),"\n")
+            #   file_data.append(current_line)
+                
             #Close citation camp
             current_line = "}}{0}".format("\n")
             file_data.append(current_line)
@@ -262,25 +269,7 @@ class BibData(GenericTex):
 
         return culled_list
 
-
-
-
-
-
-
-        
-
-
-
-
-
-
-
-            
-
-
     
-
 class TexData(GenericTex):
     
     def __init__(self, received_data):
@@ -295,9 +284,6 @@ class TexData(GenericTex):
             if bool(regex.findall(self.cite_pattern,line)):
                 for item in regex.findall(self.cite_pattern,line):
                     self.cited_list.append(item)
-
-
-
 
 
 class Citation(object):
@@ -376,9 +362,7 @@ class Citation(object):
         self.regex_gen_part2 = r')[ =]+)[{"]\K.+(?=((}|")(,|\n)$))'
         return regex.compile("{0}{1}{2}".format(self.regex_gen_part1,cit_type,self.regex_gen_part2),self.REGEX_FLAGS)
 
-
-
-    
+   
 class PreambleData(GenericTex):
     
     def __init__(self, received_data):

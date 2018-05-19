@@ -85,6 +85,7 @@ while (restart == '0'):
         dados.write_log()
     else:
         dados.log_file_location = easygui.filesavebox("New log file name",None,dados.log_file_location,r"*.log")
+        dados.write_log(1)
 
   
     
