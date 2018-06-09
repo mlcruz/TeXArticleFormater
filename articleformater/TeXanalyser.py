@@ -315,6 +315,7 @@ class Citation(object):
         #Searches for citation type
         try:
             self.citation_type = regex.findall(self.type_pattern,cit_data[0])[0]
+            self.citation_type = self.citation_type.lower()
         except IndexError as err:
             print(colorama.Fore.RED + colorama.Back.WHITE + colorama.Style.BRIGHT + "Something bad happend here. Check bibliography entry formatting, probably some whitespace is messing things up. defaulting as misc" + colorama.Style.RESET_ALL)
             log_file_data.append("Check for whitespaces in the bibliography file. being unable to read '@type {foo,' entries is a known bug")
