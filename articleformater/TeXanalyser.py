@@ -81,6 +81,7 @@ class TeXIO(object):
 
 
 
+
 class Article(TeXIO):
     """Implements formating methods and initializes BibData/TexData/PreambleData objects"""
     
@@ -177,6 +178,19 @@ class BibData(GenericTex):
     #Initializes type dictionary
     cit_type_dict =  {"article":article,"book":book,"booklet":booklet,"conference":conference,"inbook":inbook,"incollection":incollection,"manual":manual, "mastersthesis":mastersthesis,"misc":misc,"phdthesis":phdthesis,"proceedings":proceedings,"inproceedings":inproceedings,"techreport":techreport,"report":report,"unpublished":unpublished,"online":online}
     
+    
+    bracket_stack = []
+
+    def count_brackets(self,line):
+        ''' Pushes brackets in the line into the bracket_stack for balancing'''
+        for char in line:
+            if char == '{':
+                bracket_stack.append("{")
+            if char == '}':
+                bracket_stack.pop()
+
+
+
 
 
 
