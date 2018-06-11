@@ -185,11 +185,11 @@ class BibData(GenericTex):
         ''' Pushes brackets in the line into the bracket_stack for balancing'''
         for char in line:
             if char == '{':
-                bracket_stack.append("{")
+                self.bracket_stack.append("{")
+                
             if char == '}':
-                bracket_stack.pop()
-
-
+                
+                self.bracket_stack.pop()
 
 
 
@@ -197,8 +197,8 @@ class BibData(GenericTex):
     def __init__(self, received_data):
         """Populates a list of citation objects with the bibliography file data"""
 
-        #variable for loop control. 0 = in the block ; 1 = end of block; 2 = outside of the block. 
-        self.end_of_cite = 0
+        #variable for loop control. 0 = in the block ; 1 = outside of the block. 
+        self.end_of_cite = 2
 
         #Block that is being currently initialized
         self.cite_block =[]
@@ -209,7 +209,7 @@ class BibData(GenericTex):
         for line in received_data:
             
             #If the line starts an entry, begin another block
-            matched = regex.match(r'[\s]*@\w+(?={)',line,regex.IGNORECASE)
+            matched = regex.match(r'[\s]*@[\w \s]+(?={)',line,regex.IGNORECASE)
             matched_label = regex.match(label_pattern,line.lstrip())
             
 
@@ -217,25 +217,25 @@ class BibData(GenericTex):
             if (bool(matched)):
                 
                 self.end_of_cite = 0
+
                 print("matched - type: {0}, label: {1}".format(matched.captures()[0],matched_label.captures()[0]))
 
-            #If the line ends in a block terminator(last } in the entry), change variable state to end of block
-            if regex.match(r'(?<!(\d|\w|\.|,))[\s]*}\s*(?=\n)',line,regex.IGNORECASE):
-                self.end_of_cite = 1
 
-            
             if(self.end_of_cite == 0):
                 self.cite_block.append(line)
+                self.count_brackets(line)
 
-            elif(self.end_of_cite == 1):
-                self.cite_block.append(line)
-                #discard empty text
-                if (self.cite_block[0] == '\n'):
-                    print("discarded")
-                    self.cite_block = []
-                else:
-                    self.cite_block_library.append(Citation(self.cite_block,self.cit_type_dict))
-                    self.cite_block = []
+            #If the line ends in a block terminator(last } in the entry), change variable state to end of block
+            if (self.bracket_stack == []) and self.end_of_cite == 0:
+                #Removes last }/n in some entries
+                if regex.sub(r'\s+', '',self.cite_block[-1]) == '}':
+                    self.cite_block.pop()
+
+
+                self.end_of_cite == 1
+                self.cite_block_library.append(Citation(self.cite_block,self.cit_type_dict))
+                self.cite_block = []
+
 
 
         
@@ -321,20 +321,23 @@ class Citation(object):
         self.removed_camps = []
         
        #pattern to search for citation type. matches every word after @ and before {
-        self.type_pattern = regex.compile(r"@\K\b[\w \s]*",self.REGEX_FLAGS)
+        self.type_pattern = regex.compile(r"(?<=@)\b[\w \s]*",self.REGEX_FLAGS)
+        
+      
 
         #pattern to search for label value. Matches every word-num in after the (@w+{) ending in a comma
         self.label_pattern = regex.compile(r"@.+{\K[\w \d \: \_ ]+(?<!,$)",(self.REGEX_FLAGS))
 
-        #Searches for citation type
+
+
+        #Searches for citation type, removing any whitespace from citation type 
         try:
-            self.citation_type = regex.findall(self.type_pattern,cit_data[0])[0]
+            self.citation_type = regex.sub(r'\s+', '' ,regex.findall(self.type_pattern,cit_data[0])[0])
             self.citation_type = self.citation_type.lower()
         except IndexError as err:
-            print(colorama.Fore.RED + colorama.Back.WHITE + colorama.Style.BRIGHT + "Something bad happend here. Check bibliography entry formatting, probably some whitespace is messing things up. defaulting as misc" + colorama.Style.RESET_ALL)
-            log_file_data.append("Check for whitespaces in the bibliography file. being unable to read '@type {foo,' entries is a known bug")
-            log_file_data.append(str(err))
-            self.citation_type = 'misc'
+            print(colorama.Fore.RED + colorama.Back.WHITE + colorama.Style.BRIGHT + "Something bad happend here. Check bibliography entry formatting" + colorama.Style.RESET_ALL)
+            log_file_data.append("Check bibliography entry formatting")
+
 
 
         #Searches for label name
