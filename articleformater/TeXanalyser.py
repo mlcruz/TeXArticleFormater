@@ -51,7 +51,7 @@ class TeXIO(object):
         else:
             new_file_location = self.bib_file_location
 
-        with open(new_file_location,"a+",encoding="utf8") as bib_writer:
+        with open(new_file_location,"w+",encoding="utf8") as bib_writer:
             for line in self.current_bib_data:
                 bib_writer.write(line)
 
@@ -62,7 +62,7 @@ class TeXIO(object):
         else:
             new_file_location = self.tex_file_location
 
-        with open(new_file_location,"a+",encoding="utf8") as tex_writer:
+        with open(new_file_location,"w+",encoding="utf8") as tex_writer:
             for line in self.current_tex_data:
                 tex_writer.write(line)
 
@@ -74,7 +74,7 @@ class TeXIO(object):
         else:
             new_file_location = self.log_file_location
 
-        with open (new_file_location,"a+",encoding="utf8") as log_writer:
+        with open (new_file_location,"w+",encoding="utf8") as log_writer:
             for line in log_file_data:
                 log_writer.write(line)
 

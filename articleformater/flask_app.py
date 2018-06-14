@@ -30,11 +30,6 @@ def download_file(filename):
 @app.route('/', methods=['GET', 'POST'])
 def upload_file():
     if request.method == 'POST':
-        if request.form.get('uncited'):
-            checked_remove = "y"
-        else:
-            checked_remove = "n"
-
 
         # check if the post request has the file part
         if ('file_tex' or 'file_bib') not in request.files:
@@ -68,7 +63,7 @@ def upload_file():
             "--tex_output_name",tex_out_string,
             "--bib_output_name",bib_out_string,
             "--log_file_path",log_out_string,
-            "--remove_uncited","y"
+            #"--remove_uncited","y"
             ]
 
 
@@ -109,7 +104,6 @@ def upload_file():
       <p>tex: <input type=file name=file_tex><br>
          bib: <input type=file name=file_bib><br><br>
         <input type="checkbox" name="uncited" value="true"> Remove unused bibliography entries<br>
-
          <br><br><input type=submit value=Format>
     </form>'''
 

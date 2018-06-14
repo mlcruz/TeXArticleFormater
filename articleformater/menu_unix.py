@@ -6,7 +6,7 @@ from TeXanalyser import Article
 @click.option('--bib_path',prompt='Path to bib file', help='Path to bib file')
 @click.option('--tex_output_name',default="default",help='Output tex file path. Defaults to file.tex.new in the same folder')
 @click.option('--bib_output_name',default="default",help='Output bib file path. Defaults to file.bib.new in the same folder')
-@click.option('--remove_uncited',default="n",help='y/n Removes unused bibliography entries. Default: n')
+@click.option('--remove_uncited',default="y",help='y/n Removes unused bibliography entries. Default: n')
 @click.option('--log_file_path',default="default",help='Output .log file path. Defaults to file.log in the same folder')
 @click.option('--comment_removed',default="n",help='y/n Comments removed fields from bib data. default: n')
 @click.option('--terminator',default="N/A",help="String to fill missing entries with. Defaults to N/A")
