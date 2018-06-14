@@ -30,6 +30,12 @@ def download_file(filename):
 @app.route('/', methods=['GET', 'POST'])
 def upload_file():
     if request.method == 'POST':
+        if request.form.get('uncited'):
+            checked_remove = "y"
+        else:
+            checked_remove = "n"
+
+
         # check if the post request has the file part
         if ('file_tex' or 'file_bib') not in request.files:
             return redirect(request.url)
@@ -38,7 +44,7 @@ def upload_file():
         # if user does not select file, browser also
         # submit a empty part without filename
         if (file_tex.filename or file_bib.filename) == '':
-            return redirect(request.url+"/download/{0}".format(filename_tex))
+            return redirect(request.url)
         if (file_tex and file_bib) and allowed_file(file_tex.filename) and allowed_file(file_bib.filename):
             filename_tex = secure_filename(file_tex.filename)
             filename_bib = secure_filename(file_bib.filename)
@@ -61,8 +67,11 @@ def upload_file():
             "--bib_path",bib_path_string,
             "--tex_output_name",tex_out_string,
             "--bib_output_name",bib_out_string,
-            "--log_file_path",log_out_string
+            "--log_file_path",log_out_string,
+            "--remove_uncited","y"
             ]
+
+
 
             #mysite/TeXArticleFormater/articleformater/menu_unix.py --tex_path "mysite/TeXArticleFormater/articleformater/comite.tex" --bib_path "mysite/TeXArticleFormater/articleformater/comite.bib" --tex_output
 #_name "mysite/uploads/new.tex" --bib_output_name "mysite/uploads/new.bib" --log_file_path "mysite/uploads/new.log"
@@ -99,6 +108,8 @@ def upload_file():
     <form method=post enctype=multipart/form-data>
       <p>tex: <input type=file name=file_tex><br>
          bib: <input type=file name=file_bib><br><br>
+        <input type="checkbox" name="uncited" value="true"> Remove unused bibliography entries<br>
+
          <br><br><input type=submit value=Format>
     </form>'''
 
