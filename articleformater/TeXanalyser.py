@@ -1,5 +1,4 @@
 import regex
-import colorama
 
 
 log_file_data = []
@@ -11,31 +10,31 @@ class TeXIO(object):
         """Create lists containing Tex/Bib file data from file"""
         log_file_data.clear()
         #clear log file
-       
+
         self.tex_file_location = tex_file_location
         self.bib_file_location = bib_file_location
         self.log_file_location = (("{0}{1}").format(((self.bib_file_location).split(".")[0]).lower(),".log"))
 
-        #reads Tex/Bib file, #Handles utf8/latin1 encoding and push to list. 
-        try:        
+        #reads Tex/Bib file, #Handles utf8/latin1 encoding and push to list.
+        try:
             with open(tex_file_location,"r",encoding="utf8") as tex_reader:
                 self.original_tex_data = tex_reader.readlines()
                 self.current_tex_data = self.original_tex_data
-        
-        
+
+
         except UnicodeDecodeError:
-            print(colorama.Fore.RED + colorama.Style.BRIGHT + "Error: Not unicode - Trying Latin1 Decoding" +colorama.Style.RESET_ALL)
+            print("Error: Not unicode - Trying Latin1 Decoding")
             log_file_data.append("Error:Tex file not unicode - Trying Latin1 Decoding\n")
             with open(tex_file_location,"r",encoding="latin-1") as tex_reader:
                 self.original_tex_data = tex_reader.readlines()
                 self.current_tex_data = self.original_tex_data
-                
+
         try:
             with open(bib_file_location,"r",encoding="utf8") as bib_reader:
                 self.original_bib_data = bib_reader.readlines()
                 self.current_bib_data = self.original_bib_data
         except UnicodeDecodeError:
-            print(colorama.Fore.RED + colorama.Style.BRIGHT + "Error:Bib file not unicode - Trying Latin1 Decoding" +colorama.Style.RESET_ALL)
+            print("Error:Bib file not unicode - Trying Latin1 Decoding")
             log_file_data.append("Error:Bib file not unicode - Trying Latin1 Decoding\n")
             with open(tex_file_location,"r",encoding="latin-1") as bib_reader:
                 self.original_bib_data = bib_reader.readlines()
@@ -46,7 +45,7 @@ class TeXIO(object):
 
     def write_bib(self,dialog=0):
         """Writes current_bib_data to filename.new"""
-        
+
         if dialog == 0:
             new_file_location = (("{0}_{1}").format(((self.bib_file_location).split(".")[0]).lower(),"new.bib"))
         else:
@@ -84,35 +83,35 @@ class TeXIO(object):
 
 class Article(TeXIO):
     """Implements formating methods and initializes BibData/TexData/PreambleData objects"""
-    
+
     def __init__(self,tex_file_location,bib_file_location):
 
-       
+
 
         """Separates the main file in 3 lists and initializes BibData/TexData/PreambleData objects with the data"""
         super().__init__(tex_file_location,bib_file_location)
-        
-        
+
+
         #finds line where the preamble ends
         preamble_found = self.current_tex_data.index("\\begin{document}\n")
 
         #Separates preamble and text in distinct objects
         self.preamble_data = PreambleData(self.current_tex_data[:preamble_found])
         self.tex_data = TexData(self.current_tex_data[preamble_found:])
-        
+
         #Merge multiline entries in bibliography file
         self.current_bib_data = (self.merge_lines(self.current_bib_data))
 
         #Initializes bibliography object with bibliography data
         self.bib_data = BibData(self.current_bib_data)
 
-        
+
 
     def merge_lines(self,a_file):
         """Merge multiline atributes in a bib file in a single line"""
         #Temp holder for non-terminated lines
         line_holder =""
-        
+
         #line appended state; 0 = not appended, 1 = appended
         line_appended = 0
 
@@ -120,7 +119,7 @@ class Article(TeXIO):
         single_line_list = []
 
         for line in a_file:
-            #matches every line terminated by , } " 
+            #matches every line terminated by , } "
             if regex.match(r'^.*([,\"}])\s*$',line):
 
                 #if its a appended line, strips left side whitespaces and tabs
@@ -135,20 +134,20 @@ class Article(TeXIO):
                 single_line_list.append(line_holder)
                 #clear line holder
                 line_holder = ""
-                
+
                 line_appended = 0
-                
+
             else:
                 #if the line is not matched, its a non-terminated line
                 #append line to temporary line holder
                 line_holder = '{0}{1}'.format(line_holder,line.rstrip('\n'))
                 line_appended = 1
-        
+
         return single_line_list
 
 class GenericTex(object):
     """Generic class implementing IO and diff checking to be inherited by BibData/TexData/PreambleData objects"""
-    
+
     def __init__(self, received_data):
         self.received_data = received_data
 
@@ -177,8 +176,8 @@ class BibData(GenericTex):
 
     #Initializes type dictionary
     cit_type_dict =  {"article":article,"book":book,"booklet":booklet,"conference":conference,"inbook":inbook,"incollection":incollection,"manual":manual, "mastersthesis":mastersthesis,"misc":misc,"phdthesis":phdthesis,"proceedings":proceedings,"inproceedings":inproceedings,"techreport":techreport,"report":report,"unpublished":unpublished,"online":online}
-    
-    
+
+
     bracket_stack = []
 
     def count_brackets(self,line):
@@ -186,9 +185,9 @@ class BibData(GenericTex):
         for char in line:
             if char == '{':
                 self.bracket_stack.append("{")
-                
+
             if char == '}':
-                
+
                 self.bracket_stack.pop()
 
 
@@ -197,7 +196,7 @@ class BibData(GenericTex):
     def __init__(self, received_data):
         """Populates a list of citation objects with the bibliography file data"""
 
-        #variable for loop control. 0 = in the block ; 1 = outside of the block. 
+        #variable for loop control. 0 = in the block ; 1 = outside of the block.
         self.end_of_cite = 2
 
         #Block that is being currently initialized
@@ -207,15 +206,15 @@ class BibData(GenericTex):
 
 
         for line in received_data:
-            
+
             #If the line starts an entry, begin another block
             matched = regex.match(r'[\s]*@[\w \s]+(?={)',line,regex.IGNORECASE)
             matched_label = regex.match(label_pattern,line.lstrip())
-            
+
 
 
             if (bool(matched)):
-                
+
                 self.end_of_cite = 0
 
                 print("matched - type: {0}, label: {1}".format(matched.captures()[0],matched_label.captures()[0]))
@@ -238,9 +237,9 @@ class BibData(GenericTex):
 
 
 
-        
+
     def generate_writable_bib_object(self,tag="N/A",comment=0):
-        
+
         missing_tag = tag
         """Creates list containing a bibliography file text data with the current cite_block_library data"""
         file_data = []
@@ -257,14 +256,14 @@ class BibData(GenericTex):
                     current_line = "\t{0} = {{{1}}},{2}".format(key,missing_tag,"\n")
 
                 file_data.append(current_line)
-           
+
             if(comment == 1):
             #Write removed data as comments
                 for line in citation.removed_camps:
                     current_line = "{0}%{1}{2}".format("\t",line.strip(),"\n")
                     file_data.append(current_line)
 
-                
+
             #Close citation camp
             current_line = "}}{0}".format("\n")
             file_data.append(current_line)
@@ -285,14 +284,14 @@ class BibData(GenericTex):
 
         return culled_list
 
-    
+
 class TexData(GenericTex):
-    
+
     def __init__(self, received_data):
         super().__init__(received_data)
         #pattern to serach for cited objects
         self.cite_pattern = regex.compile(r"\\cite{\K[\d \w \:]+",regex.IGNORECASE)
-        
+
         #List of cited objects
         self.cited_list = []
 
@@ -304,38 +303,38 @@ class TexData(GenericTex):
 
 class Citation(object):
 
-        
+
     """Citations represent a single reference entry in a bibliography file."""
-    
+
     def __init__(self, cit_data, cit_dict):
         """Initiliazes the citation object with raw text data in a list from a single bibliography entry and a dictionary with the allowed attributes for each type of entry.
-        and populates the attribute_data_dict dictionary with the data(key=citation type;Value=camp value(searched with the gen_regex_pattern function)""" 
-        
-        
+        and populates the attribute_data_dict dictionary with the data(key=citation type;Value=camp value(searched with the gen_regex_pattern function)"""
+
+
         self.REGEX_FLAGS = regex.IGNORECASE|regex.MULTILINE|regex.UNICODE|regex.V1
 
         self.cit_data = cit_data
         self.cit_dict = cit_dict
-        
-        
+
+
         self.removed_camps = []
-        
+
        #pattern to search for citation type. matches every word after @ and before {
         self.type_pattern = regex.compile(r"(?<=@)\b[\w \s]*",self.REGEX_FLAGS)
-        
-      
+
+
 
         #pattern to search for label value. Matches every word-num in after the (@w+{) ending in a comma
         self.label_pattern = regex.compile(r"@.+{\K[\w \d \: \_ ]+(?<!,$)",(self.REGEX_FLAGS))
 
 
 
-        #Searches for citation type, removing any whitespace from citation type 
+        #Searches for citation type, removing any whitespace from citation type
         try:
             self.citation_type = regex.sub(r'\s+', '' ,regex.findall(self.type_pattern,cit_data[0])[0])
             self.citation_type = self.citation_type.lower()
         except IndexError as err:
-            print(colorama.Fore.RED + colorama.Back.WHITE + colorama.Style.BRIGHT + "Something bad happend here. Check bibliography entry formatting" + colorama.Style.RESET_ALL)
+            print("Something bad happend here. Check bibliography entry formatting")
             log_file_data.append("Check bibliography entry formatting")
 
 
@@ -344,7 +343,7 @@ class Citation(object):
         try:
             self.label_name = regex.findall(self.label_pattern,cit_data[0])[0]
         except IndexError as err:
-            print(colorama.Fore.RED + colorama.Back.WHITE + colorama.Style.BRIGHT + "Something bad happend here. Check bibliography entry formatting, probably some whitespace is messing things up. defaulting as misc" + colorama.Style.RESET_ALL)
+            print("Something bad happend here. Check bibliography entry formatting, probably some whitespace is messing things up. defaulting as misc")
             log_file_data.append("Check for whitespaces in the bibliography file. being unable to read '@type {foo,' entries is a known bug")
             log_file_data.append(str(err))
             self.label_name = 'error'
@@ -354,7 +353,7 @@ class Citation(object):
         try:
             self.cit_allowed_list = self.cit_dict[self.citation_type.lower()]
         except KeyError as err:
-            print(colorama.Style.BRIGHT +colorama.Fore.RED + "!!-----Citation type unknown:{0}, defaulting as MISC-----!!".format(str(err)) + colorama.Style.RESET_ALL)
+            print( "!!-----Citation type unknown:{0}, defaulting as MISC-----!!".format(str(err)) )
             log_file_data.append("!!-----Citation type unknown:{0}, defaulting as MISC-----!!\n".format(str(err)))
             self.cit_allowed_list = self.cit_dict['misc']
             self.citation_type = 'misc'
@@ -365,12 +364,12 @@ class Citation(object):
         #Creates dictionary using allowed item types as keys and the respective camp value in the citation data
         self.attribute_data_dict = {
             type:([self.gen_regex_pattern(type).match(x).captures()[0] for x in self.cit_data if self.gen_regex_pattern(type).match(x)]) for type in self.cit_allowed_list}
-        
+
         #Populate removed camps list
         for line in cit_data:
             if (bool(self.cit_attribute_pattern.match(line)) and (self.cit_attribute_pattern.match(line).captures()[0].lower().strip() not in self.cit_allowed_list)):
                 self.removed_camps.append(line)
-                print(colorama.Fore.GREEN+"-removed {0} from {1}".format(line.strip(),self.label_name) + colorama.Style.RESET_ALL)
+                print("-removed {0} from {1}".format(line.strip(),self.label_name))
                 log_file_data.append("-removed {0} from {1}\n".format(line.strip(),self.label_name))
 
     def gen_regex_pattern(self,cit_type):
@@ -382,9 +381,9 @@ class Citation(object):
         self.regex_gen_part2 = r')[ =]+)[{"]\K.+(?=((}|")(,|\n)$))'
         return regex.compile("{0}{1}{2}".format(self.regex_gen_part1,cit_type,self.regex_gen_part2),self.REGEX_FLAGS)
 
-   
+
 class PreambleData(GenericTex):
-    
+
     def __init__(self, received_data):
         return super().__init__(received_data)
 
