@@ -13,7 +13,7 @@ class TeXIO(object):
 
         self.tex_file_location = tex_file_location
         self.bib_file_location = bib_file_location
-        self.log_file_location = (("{0}{1}").format(((self.bib_file_location).split(".")[0]).lower(),".log"))
+        self.log_file_location = (("{0}{1}").format(((self.bib_file_location).split(".")[0]),".log"))
 
         #reads Tex/Bib file, #Handles utf8/latin1 encoding and push to list.
         try:
@@ -47,22 +47,22 @@ class TeXIO(object):
         """Writes current_bib_data to filename.new"""
 
         if dialog == 0:
-            new_file_location = (("{0}_{1}").format(((self.bib_file_location).split(".")[0]).lower(),"new.bib"))
+            new_file_location = (("{0}_{1}").format(((self.bib_file_location).split(".")[0]),"new.bib"))
         else:
             new_file_location = self.bib_file_location
 
-        with open(new_file_location,"w",encoding="utf8") as bib_writer:
+        with open(new_file_location,"a+",encoding="utf8") as bib_writer:
             for line in self.current_bib_data:
                 bib_writer.write(line)
 
     def write_tex(self,dialog=0):
         """Writes current_tex_data to filename.new"""
         if dialog == 0:
-            new_file_location = (("{0}_{1}").format(((self.tex_file_location).split(".")[0]).lower(),"new.tex"))
+            new_file_location = (("{0}_{1}").format(((self.tex_file_location).split(".")[0]),"new.tex"))
         else:
             new_file_location = self.tex_file_location
 
-        with open(new_file_location,"w",encoding="utf8") as tex_writer:
+        with open(new_file_location,"a+",encoding="utf8") as tex_writer:
             for line in self.current_tex_data:
                 tex_writer.write(line)
 
@@ -70,11 +70,11 @@ class TeXIO(object):
     def write_log(self,dialog=0):
 
         if dialog == 0:
-            new_file_location = (("{0}_{1}").format(((self.log_file_location).split(".")[0]).lower(),".log"))
+            new_file_location = (("{0}_{1}").format(((self.log_file_location).split(".")[0]),".log"))
         else:
             new_file_location = self.log_file_location
 
-        with open (new_file_location,"w",encoding="utf8") as log_writer:
+        with open (new_file_location,"a+",encoding="utf8") as log_writer:
             for line in log_file_data:
                 log_writer.write(line)
 

@@ -1,0 +1,91 @@
+import os
+import secrets
+from flask import Flask, request, redirect, url_for, send_from_directory
+from werkzeug.utils import secure_filename
+import subprocess
+
+
+UPLOAD_FOLDER = '/home/mlcruz/mysite/uploads'
+DOWNLOAD_FOLDER ='/home/mlcruz/mysite/downloads'
+ALLOWED_EXTENSIONS = set(['tex', 'bib'])
+
+app = Flask(__name__)
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+
+@app.route('/downloads/<filename>')
+def uploaded_file(filename):
+    return send_from_directory(DOWNLOAD_FOLDER,filename)
+
+@app.route('/', methods=['GET', 'POST'])
+def upload_file():
+    if request.method == 'POST':
+        # check if the post request has the file part
+        if ('file_tex' or 'file_bib') not in request.files:
+            return redirect(request.url)
+        file_tex  = request.files['file_tex']
+        file_bib = request.files['file_bib']
+        # if user does not select file, browser also
+        # submit a empty part without filename
+        if (file_tex.filename or file_bib.filename) == '':
+            return redirect(request.url)
+        if (file_tex and file_bib) and allowed_file(file_tex.filename) and allowed_file(file_bib.filename):
+            filename_tex = secure_filename(file_tex.filename)
+            filename_bib = secure_filename(file_bib.filename)
+            salt = "" #secrets.randbelow(99999999)
+
+            tex_path_string = os.path.join(app.config['UPLOAD_FOLDER'], filename_tex)
+            bib_path_string = os.path.join(app.config['UPLOAD_FOLDER'], filename_bib)
+
+            tex_out_string = os.path.join(DOWNLOAD_FOLDER, (str(salt) + "new_" + filename_tex ))
+            bib_out_string = os.path.join(DOWNLOAD_FOLDER, (str(salt) + "new_" + filename_bib))
+
+            log_out_string = tex_out_string + ".log"
+
+            file_tex.save(tex_path_string)
+            file_bib.save(bib_path_string)
+
+            script_path = os.path.join(os.getcwd(),"mysite/TeXArticleFormater/articleformater/menu_unix.py")
+            command_string = ["{0}".format(script_path),
+            "--tex_path",tex_path_string,
+            "--bib_path",bib_path_string,
+            "--tex_output_name",tex_out_string,
+            "--bib_output_name",bib_out_string,
+            "--log_file_path",log_out_string
+            ]
+
+            #mysite/TeXArticleFormater/articleformater/menu_unix.py --tex_path "mysite/TeXArticleFormater/articleformater/comite.tex" --bib_path "mysite/TeXArticleFormater/articleformater/comite.bib" --tex_output
+#_name "mysite/uploads/new.tex" --bib_output_name "mysite/uploads/new.bib" --log_file_path "mysite/uploads/new.log"
+
+            subprocess.run(command_string)  # doesn't capture output
+
+            with open(log_out_string,"r",encoding="utf8") as tex_reader:
+                log_file = tex_reader.readlines()
+
+            log_stringer = ""
+            for line in log_file:
+                log_stringer = log_stringer + line +"<br>"
+
+            return log_stringer
+
+
+
+
+    return '''
+    <!doctype html>
+    <title>Upload new File</title>
+    <h1>Upload new File</h1>
+    <form method=post enctype=multipart/form-data>
+      <p>tex: <input type=file name=file_tex><br>
+         bib: <input type=file name=file_bib><br>
+         <br><br><input type=submit value=Format>
+    </form>
+    '''
+
+
+

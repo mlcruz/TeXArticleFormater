@@ -1,3 +1,4 @@
+#!/usr/bin/python3.6
 import click
 from TeXanalyser import Article
 @click.command()
