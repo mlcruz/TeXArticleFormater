@@ -1,6 +1,6 @@
 import os
 import secrets
-from flask import Flask, request, redirect, url_for, send_from_directory
+from flask import Flask, request, redirect, url_for, send_from_directory, send_file
 from werkzeug.utils import secure_filename
 import subprocess
 
@@ -18,9 +18,14 @@ def allowed_file(filename):
 
 
 
-@app.route('/downloads/<filename>')
-def uploaded_file(filename):
-    return send_from_directory(DOWNLOAD_FOLDER,filename)
+
+
+@app.route('/download/<filename>')
+def download_file(filename):
+       return send_from_directory('/home/mlcruz/mysite/downloads',filename = "new_"+filename, attachment_filename=("new_"+filename),as_attachment=True)
+
+
+
 
 @app.route('/', methods=['GET', 'POST'])
 def upload_file():
@@ -33,7 +38,7 @@ def upload_file():
         # if user does not select file, browser also
         # submit a empty part without filename
         if (file_tex.filename or file_bib.filename) == '':
-            return redirect(request.url)
+            return redirect(request.url+"/download/{0}".format(filename_tex))
         if (file_tex and file_bib) and allowed_file(file_tex.filename) and allowed_file(file_bib.filename):
             filename_tex = secure_filename(file_tex.filename)
             filename_bib = secure_filename(file_bib.filename)
@@ -71,9 +76,20 @@ def upload_file():
             for line in log_file:
                 log_stringer = log_stringer + line +"<br>"
 
-            return log_stringer
+        #send_from_directory('/home/mlcruz/mysite/downloads',filename = "new_"+filename_bib , attachment_filename=("new_"+filename_bib),as_attachment=True)
 
-
+            return ('''
+        <!doctype html>
+        <title>Download files</title>
+        <h3>Completed!</h3><br>
+        <h2>Download Formated Files:</h2><br>
+        <a target="_blank" href={0}><input type="button" value="Download TeX file"/></a>
+        <a target="_blank" href={1}><input type="button" value="Download Bib file"/></a>
+        <a target="_blank" href={2}><input type="button" value="Download Log file"/></a>
+        <br>
+        <br>
+        <h2>LOG:</h2>
+        </form>'''.format(request.url+"download/{0}".format(filename_tex),request.url+"download/{0}".format(filename_bib),request.url+"download/{0}".format(filename_tex+".log") ) + log_stringer)
 
 
     return '''
@@ -82,10 +98,9 @@ def upload_file():
     <h1>Upload new File</h1>
     <form method=post enctype=multipart/form-data>
       <p>tex: <input type=file name=file_tex><br>
-         bib: <input type=file name=file_bib><br>
+         bib: <input type=file name=file_bib><br><br>
          <br><br><input type=submit value=Format>
-    </form>
-    '''
+    </form>'''
 
 
 
