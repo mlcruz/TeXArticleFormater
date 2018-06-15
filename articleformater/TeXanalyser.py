@@ -23,39 +23,41 @@ class TeXIO(object):
 
 
         except UnicodeDecodeError:
-            print("Error: Not unicode - Trying Latin1 Decoding")
-            log_file_data.append("Error:Tex file not unicode - Trying Latin1 Decoding\n")
+
             try:
+                print("Error: Not utf8 - Trying Latin1 Decoding")
+                log_file_data.append("Error:Tex file not unicode - Trying Latin1 Decoding\n")
                 with open(tex_file_location,"r",encoding="latin-1") as tex_reader:
                     self.original_tex_data = tex_reader.readlines()
                     self.current_tex_data = self.original_tex_data
-            expect:
+            except UnicodeDecodeError:
                 print("Error: Not latin1- Trying cp1252 Decoding")
                 log_file_data.append("Error: Not latin1- Trying ANSI Decoding")
                 with open(tex_file_location,"r",encoding="cp1252") as tex_reader:
                     self.original_tex_data = tex_reader.readlines()
                     self.current_tex_data = self.original_tex_data
-                    
-                
+
+
         try:
             with open(bib_file_location,"r",encoding="utf8") as bib_reader:
                 self.original_bib_data = bib_reader.readlines()
                 self.current_bib_data = self.original_bib_data
         except UnicodeDecodeError:
-            print("Error:Bib file not unicode - Trying Latin1 Decoding")
-            log_file_data.append("Error:Bib file not unicode - Trying Latin1 Decoding\n")
+
             try:
+                print("Error:Bib file not not utf8 - Trying Latin1 Decoding")
+                log_file_data.append("Error:Bib file not unicode - Trying Latin1 Decoding\n")
                 with open(tex_file_location,"r",encoding="latin-1") as bib_reader:
                     self.original_bib_data = bib_reader.readlines()
                     self.current_bib_data = self.original_bib_data
-            except:
+            except UnicodeDecodeError:
                 print("Error: Not latin1- Trying cp1252 Decoding")
                 log_file_data.append("Error: Not latin1- Trying cp1252 Decoding")
-                
+
                 with open(tex_file_location,"r",encoding="cp1252") as tex_reader:
                     self.original_tex_data = tex_reader.readlines()
                     self.current_tex_data = self.original_tex_data
-                
+
 
     def write_bib(self,dialog=0):
         """Writes current_bib_data to filename.new"""

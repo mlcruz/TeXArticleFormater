@@ -76,19 +76,26 @@ def upload_file():
 
             subprocess.run(command_string)  # doesn't capture output
 
-            with open(log_out_string,"r",encoding="utf8") as tex_reader:
-                log_file = tex_reader.readlines()
-
             log_stringer = ""
-            for line in log_file:
-                log_stringer = log_stringer + line +"<br>"
+            log_file = None
+            try:
+                with open(log_out_string,"r",encoding="utf8") as tex_reader:
+                    log_file = tex_reader.readlines()
+
+                for line in log_file:
+                    log_stringer = log_stringer + line +"<br>"
+
+            except:
+                log_stringer = "Error: Check bibliography formating, its possible that brackets are not balanced in the bibliography file"
+
+
 
         #send_from_directory('/home/mlcruz/mysite/downloads',filename = "new_"+filename_bib , attachment_filename=("new_"+filename_bib),as_attachment=True)
 
             return ('''
         <!doctype html>
         <title>Download files</title>
-        <h3>Completed!</h3><br>
+        <h3>Done!</h3><br>
         <h2>Download Formated Files:</h2><br>
         <a target="_blank" href={0}><input type="button" value="Download TeX file"/></a>
         <a target="_blank" href={1}><input type="button" value="Download Bib file"/></a>
@@ -101,8 +108,8 @@ def upload_file():
 
     return '''
     <!doctype html>
-    <title>Select tex and Bib files</title>
-    <h1>Select Tex and bib files to be formated</h1>
+    <title>Select tex and bib files</title>
+    <h1>Select tex and bib files to be formated</h1>
     <form method=post enctype=multipart/form-data>
       <p>tex: <input type=file name=file_tex><br>
          bib: <input type=file name=file_bib><br><br>
