@@ -280,6 +280,7 @@ class BibData(GenericTex):
             if item.label_name in tex_cited:
                 culled_list.append(item)
             else:
+                log_file_data.append("Removed {0}\n".format(item.label_name))
                 print("Removed {0}".format(item.label_name))
 
         return culled_list

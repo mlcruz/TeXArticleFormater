@@ -30,7 +30,10 @@ def download_file(filename):
 @app.route('/', methods=['GET', 'POST'])
 def upload_file():
     if request.method == 'POST':
-
+        if request.form.get('uncited'):
+            checked_uncited = "y"
+        else:
+            checked_uncited = "n"
         # check if the post request has the file part
         if ('file_tex' or 'file_bib') not in request.files:
             return redirect(request.url)
@@ -63,7 +66,7 @@ def upload_file():
             "--tex_output_name",tex_out_string,
             "--bib_output_name",bib_out_string,
             "--log_file_path",log_out_string,
-            #"--remove_uncited","y"
+            "--remove_uncited",checked_uncited
             ]
 
 
@@ -98,8 +101,8 @@ def upload_file():
 
     return '''
     <!doctype html>
-    <title>Upload new File</title>
-    <h1>Upload new File</h1>
+    <title>Select tex and Bib files</title>
+    <h1>Select Tex and bib files to be formated</h1>
     <form method=post enctype=multipart/form-data>
       <p>tex: <input type=file name=file_tex><br>
          bib: <input type=file name=file_bib><br><br>
