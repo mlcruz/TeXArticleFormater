@@ -400,7 +400,7 @@ class Citation(object):
 
         #self.regex_gen_part1 = r'((( |\t)*'
         #self.regex_gen_part2 = r')[ =]+)[{"]\K.+(?=((}|")(,|\n)$))'
-        self.regex_gen_part1 = r'(?:{0}\W+)([\w \, \- \. \\ \/ \}}  \{{ \: \_ \& \% \$ \t \( \)]+)(?:}})'.format(cit_type)
+        self.regex_gen_part1 = r'(?:[\W]*{0}\W+)([\w \, \- \. \\ \/ \}}  \{{ \: \_ \& \% \$ \~ \´ \` \[ \] \^ \~ \t \¨ \( \)]+)(?:}})'.format(cit_type)
         
         return regex.compile(self.regex_gen_part1,self.REGEX_FLAGS)
 
