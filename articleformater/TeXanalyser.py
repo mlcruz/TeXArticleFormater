@@ -227,12 +227,14 @@ class BibData(GenericTex):
             matched = regex.match(r'[\s]*@[\w \s]+(?={)',line,regex.IGNORECASE)
             matched_label = regex.match(label_pattern,line.lstrip())
 
+         
+            
+
 
 
             if (bool(matched)):
 
                 self.end_of_cite = 0
-
                 print("matched - type: {0}, label: {1}".format(matched.captures()[0],matched_label.captures()[0]))
 
 
@@ -247,7 +249,7 @@ class BibData(GenericTex):
                     self.cite_block.pop()
 
 
-                self.end_of_cite == 1
+                self.end_of_cite = 1 
                 self.cite_block_library.append(Citation(self.cite_block,self.cit_type_dict))
                 self.cite_block = []
 
@@ -380,11 +382,11 @@ class Citation(object):
 
         #Creates dictionary using allowed item types as keys and the respective camp value in the citation data
         self.attribute_data_dict = {
-            type:([self.gen_regex_pattern(type).match(x).captures()[0] for x in self.cit_data if self.gen_regex_pattern(type).match(x)]) for type in self.cit_allowed_list}
+            type:([self.gen_regex_pattern(type).findall(x)[0] for x in self.cit_data if self.gen_regex_pattern(type).findall(x)]) for type in self.cit_allowed_list}
 
         #Populate removed camps list
         for line in cit_data:
-            if (bool(self.cit_attribute_pattern.match(line)) and (self.cit_attribute_pattern.match(line).captures()[0].lower().strip() not in self.cit_allowed_list)):
+            if (bool(self.cit_attribute_pattern.findall(line)) and (self.cit_attribute_pattern.findall(line)[0].lower().strip() not in self.cit_allowed_list)):
                 self.removed_camps.append(line)
                 print("-removed {0} from {1}".format(line.strip(),self.label_name))
                 log_file_data.append("-removed {0} from {1}\n".format(line.strip(),self.label_name))
@@ -394,9 +396,13 @@ class Citation(object):
 
         #Strings to generate regex to to search for citation camp data value value. Matches everything after {camp}= and before ,} or '',
         #Note:regex_gen not working yet with comments after the block terminator
-        self.regex_gen_part1 = r'((( |\t)*'
-        self.regex_gen_part2 = r')[ =]+)[{"]\K.+(?=((}|")(,|\n)$))'
-        return regex.compile("{0}{1}{2}".format(self.regex_gen_part1,cit_type,self.regex_gen_part2),self.REGEX_FLAGS)
+        #'(?:author\W+)([\w \, \- \.]+)'
+
+        #self.regex_gen_part1 = r'((( |\t)*'
+        #self.regex_gen_part2 = r')[ =]+)[{"]\K.+(?=((}|")(,|\n)$))'
+        self.regex_gen_part1 = r'(?:{0}\W+)([\w \, \- \. \\]+)'.format(cit_type)
+        
+        return regex.compile(self.regex_gen_part1,self.REGEX_FLAGS)
 
 
 class PreambleData(GenericTex):
