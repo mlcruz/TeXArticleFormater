@@ -266,3 +266,4 @@ articleformater/Resultados testes.txt
 *.bib
 *.tex
 *.bib
+*.asm

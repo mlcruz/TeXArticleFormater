@@ -180,7 +180,7 @@ class BibData(GenericTex):
     incollection = ["author","title","booktitle","publisher","year","editor","volume","series","chapter","pages","address","edition"]
     manual = ["title","author","organization","address","edition","month","year"]
     mastersthesis = ["title","author","school","year","address"]
-    misc = ["author","title","howpublished","month","year","note"]
+    misc = ["author","title","howpublished","month","year","note","url"]
     phdthesis = ["author","title","school","year","address"]
     proceedings = ["author","booktitle","title","year","editor","volume","series","address","month","organization","publisher"]
     inproceedings = ["author","booktitle","title","year","editor","volume","series","address","month","organization","publisher"]
