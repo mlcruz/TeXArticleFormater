@@ -251,7 +251,7 @@ class BibData(GenericTex):
                 self.end_of_cite = 1
                 
 
-                self.cite_block_library.append(beta_Citation(self.cite_block,self.cit_type_dict))
+                self.cite_block_library.append(Citation(self.cite_block,self.cit_type_dict))
                 self.cite_block = []
 
 
@@ -266,6 +266,8 @@ class BibData(GenericTex):
             file_data.append(current_line)
 
             #Write attribute data dict
+            
+            
             for key, value in citation.attribute_data_dict.items():
                 if bool(value):
                     current_line = "\t{0} = {{{1}}},{2}".format(key,value,"\n")
@@ -325,91 +327,9 @@ class PreambleData(GenericTex):
         return super().__init__(received_data)
 
 
+
+
 class Citation(object):
-
-
-    """Citations represent a single reference entry in a bibliography file."""
-
-    def __init__(self, cit_data, cit_dict):
-        """Initiliazes the citation object with raw text data in a list from a single bibliography entry and a dictionary with the allowed attributes for each type of entry.
-        and populates the attribute_data_dict dictionary with the data(key=citation type;Value=camp value(searched with the gen_regex_pattern function)"""
-
-
-        self.REGEX_FLAGS = regex.IGNORECASE|regex.MULTILINE|regex.UNICODE|regex.V1
-
-        self.cit_data = cit_data
-        self.cit_dict = cit_dict
-
-
-        self.removed_camps = []
-
-       #pattern to search for citation type. matches every word after @ and before {
-        self.type_pattern = regex.compile(r"(?<=@)\b[\w \s]*",self.REGEX_FLAGS)
-
-        #pattern to search for label value. Matches every word-num in after the (@w+{) ending in a comma
-        self.label_pattern = regex.compile(r"@.+{\K[\w \d \: \_ ]+(?<!,$)",(self.REGEX_FLAGS))
-
-
-
-        #Searches for citation type, removing any whitespace from citation type
-        try:
-            self.citation_type = regex.sub(r'\s+', '' ,regex.findall(self.type_pattern,cit_data[0])[0])
-            self.citation_type = self.citation_type.lower()
-        except IndexError as err:
-            print("Something bad happend here. Check bibliography entry formatting")
-            log_file_data.append("Check bibliography entry formatting")
-
-
-
-        #Searches for label name
-        try:
-            self.label_name = regex.findall(self.label_pattern,cit_data[0])[0]
-        except IndexError as err:
-            print("Something bad happend here. Check bibliography entry formatting, probably some whitespace is messing things up. defaulting as misc")
-            log_file_data.append("Check for whitespaces in the bibliography file. being unable to read '@type {foo,' entries is a known bug")
-            log_file_data.append(str(err))
-            self.label_name = 'error'
-
-
-        #Creates list with allowed citation camp attributes
-        try:
-            self.cit_allowed_list = self.cit_dict[self.citation_type.lower()]
-        except KeyError as err:
-            print( "!!-----Citation type unknown:{0}, defaulting as MISC-----!!".format(str(err)) )
-            log_file_data.append("!!-----Citation type unknown:{0}, defaulting as MISC-----!!\n".format(str(err)))
-            self.cit_allowed_list = self.cit_dict['misc']
-            self.citation_type = 'misc'
-
-        #Pattern to search for camp attribute value(title, author etc.)
-        self.cit_attribute_pattern = regex.compile(r"^[\w \s]*\w+",regex.IGNORECASE)
-
-        #Creates dictionary using allowed item types as keys and the respective camp value in the citation data
-        self.attribute_data_dict = {
-            type:([self.gen_regex_pattern(type).findall(x)[0] for x in self.cit_data if self.gen_regex_pattern(type).findall(x)]) for type in self.cit_allowed_list}
-
-        #Populate removed camps list
-        for line in cit_data:
-            if (bool(self.cit_attribute_pattern.findall(line)) and (self.cit_attribute_pattern.findall(line)[0].lower().strip() not in self.cit_allowed_list)):
-                self.removed_camps.append(line)
-                print("-removed {0} from {1}".format(line.strip(),self.label_name))
-                log_file_data.append("-removed {0} from {1}\n".format(line.strip(),self.label_name))
-
-    def gen_regex_pattern(self,cit_type):
-        """ Generates regex string with the type passed to the function to search for text inside  brtackets from cit_type={} in each citation camp"""
-
-        #Strings to generate regex to to search for citation camp data value value. Matches everything after {camp}= and before ,} or '',
-        #Note:regex_gen not working yet with comments after the block terminator
-        #'(?:author\W+)([\w \, \- \.]+)'
-
-        #self.regex_gen_part1 = r'((( |\t)*'
-        #self.regex_gen_part2 = r')[ =]+)[{"]\K.+(?=((}|")(,|\n)$))'
-        self.regex_gen_part1 = r'(?:[\W]*(?<!\w){0}[\W \"]+)([\w \, \- \. \\ \/ \}}  \{{ \: \_ \& \% \$ \~ \´ \` \[ \] \^ \~ \t \¨ \( \)]+)(?:[}} \"])'.format(cit_type)
-        
-        return regex.compile(self.regex_gen_part1,self.REGEX_FLAGS)
-
-
-
-class beta_Citation(object):
 
 
     """Citations represent a single reference entry in a bibliography file."""
@@ -428,20 +348,20 @@ class beta_Citation(object):
         self.removed_data_dict = {}
 
        #pattern to search for citation type. matches every word after @ and before {
-        self.type_pattern = regex.compile(r"(?:@)(\w*)",self.REGEX_FLAGS)
+        self.type_pattern = regex.compile(r"(?:@)(\w*)(?:[\s]*)",self.REGEX_FLAGS)
 
         #pattern to search for label value. Matches every word-num in after the (@w+{) ending in a comma
-        self.label_pattern = regex.compile(r"(?:^\s*@\w*{)(.*)(?:,)$",(self.REGEX_FLAGS))
+        self.label_pattern = regex.compile(r"(?:^\s*@[\w \s]*{)(.*)(?:,)$",(self.REGEX_FLAGS))
 
         #pattern to search for camp type. Matches camp type in every line
         self.camp_pattern = regex.compile(r"^(?:\s*)(\b\w+)",(self.REGEX_FLAGS))
 
         #pattern to seach for camp data.
-        self.data_pattern = regex.compile(r"^(?:^[\s\w]*=[\s \{ \"]*)([a-zA-Z\u00C0-\u024F \s \d \-]*)",(self.REGEX_FLAGS))
+        self.data_pattern = regex.compile(r"^(?:[\s\w]*=[\s \{ \"]*)([a-zA-Z\u00C0-\u024F \s \d \- \. \' \( \) \[ \] \% \& \\ \/ \* \w \, \~ \{ \} \: \. \u0022 \` \~ \^ \¨ \# \@ \! \* \_ \+ \- \? \| \; \º \° \ç]*)(?:[\} \"]?,)$",(self.REGEX_FLAGS))
 
         #Searches for citation type, removing any whitespace from citation type
         try:
-            self.citation_type = regex.sub(r'\s+', '' ,regex.findall(self.type_pattern,cit_data[0])[0])
+            self.citation_type = regex.search(self.type_pattern,cit_data[0]).group(1)
             self.citation_type = self.citation_type.lower()
         except IndexError as err:
             print("Something bad happend here. Check bibliography entry formatting")
@@ -449,7 +369,7 @@ class beta_Citation(object):
 
         #Searches for label name
         try:
-            self.label_name = regex.findall(self.label_pattern,cit_data[0])[0]
+            self.label_name = regex.search(self.label_pattern,cit_data[0]).group(1)
         except IndexError as err:
             print("Something bad happend here. Check bibliography entry formatting, probably some whitespace is messing things up. defaulting as misc")
             log_file_data.append("Check for whitespaces in the bibliography file. being unable to read '@type {foo,' entries is a known bug")
@@ -465,17 +385,39 @@ class beta_Citation(object):
             log_file_data.append("!!-----Citation type unknown:{0}, defaulting as MISC-----!!\n".format(str(err)))
             self.cit_allowed_list = self.cit_dict['misc']
             self.citation_type = 'misc'
+
+
+        #Creates a null atribute_data_dict
+        for type in self.cit_allowed_list:
+            self.attribute_data_dict[type] = ''
+
             
         #Populate attribute_data_dict from data with the camp type as key and value as value.
         for key,line in enumerate(self.cit_data):
             if key > 0: #Skips matching the first line
+
+                #Clean line for easier regex matching
+                if(line.strip()[-1] != ','):
+                    line = line.rstrip() + ',' #terminates with comma
+                else:
+                    line = line.rstrip() #rstrip
+
+                #Remove closing terminator in a line for easier regex matching
+                if(line[-2] == '}' or line[-2] == '"' or line[-2] == '"'):
+                    line_array = list(line)
+                    line_array.pop(-2) #Removes { or " or ' from item
+                    line = "".join(line_array)
+                    line = line + '\n' #Adds \n
+                                        
+              
                 camp_type = regex.search(self.camp_pattern,line).group(1) #searches for citation camp type
                 camp_data = regex.search(self.data_pattern,line).group(1) #Searches for citation camp data
                 if(camp_type in self.cit_allowed_list):
-                    self.attribute_data_dict.update({camp_type:camp_data})
+                    self.attribute_data_dict.update({camp_type:camp_data}) #Populates citation if type is in allowed list
                 else:
                     self.removed_data_dict[camp_type] = camp_data
-                    print("-removed {0} from {1}".format(camp_type,self.label_name))
+                    self.removed_camps.append(line)
+                    print("-removed {0} from {1}".format(camp_type,self.label_name)) #Populates removed items
                     log_file_data.append("-removed {0} from {1}".format(camp_type,self.label_name))
 
 
