@@ -425,8 +425,8 @@ class Citation(object):
                 else:
                     self.removed_data_dict[camp_type] = camp_data
                     self.removed_camps.append(line)
-                    print("-removed {0} from {1}".format(camp_type,self.label_name)) #Populates removed items
-                    log_file_data.append("-removed {0} from {1}".format(camp_type,self.label_name))
+                    print("-removed {0} from {1}\n".format(camp_type,self.label_name)) #Populates removed items
+                    log_file_data.append("-removed {0} from {1}\n".format(camp_type,self.label_name))
 
 
 
