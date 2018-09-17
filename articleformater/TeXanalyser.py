@@ -213,20 +213,28 @@ class BibData(GenericTex):
     def __init__(self, received_data):
         """Populates a list of citation objects with the bibliography file data"""
 
-        #variable for loop control. 0 = in the block ; 1 = outside of the block.
+        
+        #variable for loop control. 0 = in the block ; 1 = outside of the block ; 2 = first line of the bib file
         self.end_of_cite = 2
 
         #Block that is being currently initialized
         self.cite_block =[]
         self.cite_block_library =[]
         label_pattern = regex.compile(r"@.+{\K[\w \d \: \_]+(?<!,$)",regex.IGNORECASE)
+        
+        #Fixes a weird bug related to reading the first entry in a file 
+        if(received_data[0][0] == '﻿'): 
+            lista_temp = list(received_data[0])
+            lista_temp.pop(0)
+            received_data[0] = "".join(lista_temp)
 
 
         for line in received_data:
+            
 
 
             #If the line starts an entry, begin another block
-            matched = regex.match(r'[\s]*@[\w \s]+(?={)',line,regex.IGNORECASE)
+            matched = regex.match(r'@[\w \s]+(?={)',line,regex.IGNORECASE)
             matched_label = regex.match(label_pattern,line.lstrip())
 
 
@@ -371,8 +379,8 @@ class Citation(object):
         try:
             self.label_name = regex.search(self.label_pattern,cit_data[0]).group(1)
         except IndexError as err:
-            print("Something bad happend here. Check bibliography entry formatting, probably some whitespace is messing things up. defaulting as misc")
-            log_file_data.append("Check for whitespaces in the bibliography file. being unable to read '@type {foo,' entries is a known bug")
+            print("Something bad happend here. Probably some weird character is breaking stuff")
+            log_file_data.append("")
             log_file_data.append(str(err))
             self.label_name = 'error'
 
