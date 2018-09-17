@@ -365,7 +365,7 @@ class Citation(object):
         self.camp_pattern = regex.compile(r"^(?:\s*)(\b\w+)",(self.REGEX_FLAGS))
 
         #pattern to seach for camp data.
-        self.data_pattern = regex.compile(r"^(?:[\s\w]*=[\s \{ \"]*)([a-zA-Z\u00C0-\u024F \s \d \- \. \' \( \) \[ \] \% \& \\ \/ \* \w \, \~ \{ \} \: \. \u0022 \` \~ \^ \¨ \# \@ \! \* \_ \+ \- \? \| \; \º \° \ç]*)(?:[\} \"]?,)$",(self.REGEX_FLAGS))
+        self.data_pattern = regex.compile(r"^(?:[\s\w]*=[\s \{ \"]*)([a-zA-Z\u00C0-\u024F \s \d \- \. \' \– \( \) \$ \[ \] \% \’ \… \& \\ \/ \* \w \, \~ \{ \} \: \. \u0022 \` \~ \^ \¨ \# \@ \! \* \_ \+ \- \? \| \; \º \° \ç]*)(?:[\} \"]?,)$",(self.REGEX_FLAGS))
 
         #Searches for citation type, removing any whitespace from citation type
         try:
@@ -418,8 +418,22 @@ class Citation(object):
                     line = line + '\n' #Adds \n
                                         
               
+                
+          
                 camp_type = regex.search(self.camp_pattern,line).group(1) #searches for citation camp type
-                camp_data = regex.search(self.data_pattern,line).group(1) #Searches for citation camp data
+
+                
+                try:
+                    #Some optmizations to avoid computing regular expressions on large, useless blocks of text
+                    if(camp_type != "abstract" and camp_type != "keywords" and camp_type != "issn" and camp_type != "doi"):
+                        camp_data = regex.search(self.data_pattern,line).group(1) #Searches for citation camp data
+                    else:
+                        camp_data = None
+                except Exception as e:
+                    print("Error on line {0}".format(line))
+                    camp_data = "error"
+
+
                 if(camp_type in self.cit_allowed_list):
                     self.attribute_data_dict.update({camp_type:camp_data}) #Populates citation if type is in allowed list
                 else:
