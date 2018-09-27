@@ -425,7 +425,7 @@ class Citation(object):
                 
                 try:
                     #Some optmizations to avoid computing regular expressions on large, useless blocks of text
-                    if(camp_type != "abstract" and camp_type != "keywords" and camp_type != "issn" and camp_type != "doi"):
+                    if(camp_type != "abstract" and camp_type != "keywords" and camp_type != "issn" and camp_type != "doi" and camp_type !="timestamp"):
                         camp_data = regex.search(self.data_pattern,line).group(1) #Searches for citation camp data
                     else:
                         camp_data = None
