@@ -39,7 +39,7 @@ class abbrv:
     '''
 
 
-    def __init__(self, pickle_location:str = "pickle.obj"):
+    def __init__(self, pickle_location = "pickle.obj"):
         with open(pickle_location,'rb') as p:
             self.data_dict:dict = pickle.load(p)
 
@@ -57,7 +57,7 @@ class abbrv:
             return r.text
 
 
-    def isAbbrv(self,input_text:str):
+    def isAbbrv(self,input_text):
         """Tests if string is abbreviated"""
         counter = 0
         for char in input_text:

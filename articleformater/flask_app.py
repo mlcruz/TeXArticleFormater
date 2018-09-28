@@ -34,6 +34,10 @@ def upload_file():
             checked_uncited = "y"
         else:
             checked_uncited = "n"
+        if request.form.get('abbreviate'):
+            checked_abbreviate = "y"
+        else:
+            checked_abbreviate = "n"
         # check if the post request has the file part
         if ('file_tex' or 'file_bib') not in request.files:
             return redirect(request.url)
@@ -59,14 +63,15 @@ def upload_file():
             file_tex.save(tex_path_string)
             file_bib.save(bib_path_string)
 
-            script_path = os.path.join(os.getcwd(),"mysite/TeXArticleFormater/articleformater/menu_unix.py")
+            script_path = os.path.join(os.getcwd(),"mysite/TeXArticleFormater/articleformater/menu_unixa.py")
             command_string = ["{0}".format(script_path),
             "--tex_path",tex_path_string,
             "--bib_path",bib_path_string,
             "--tex_output_name",tex_out_string,
             "--bib_output_name",bib_out_string,
             "--log_file_path",log_out_string,
-            "--remove_uncited",checked_uncited
+            "--remove_uncited",checked_uncited,
+	    "--abbreviate",checked_abbreviate
             ]
 
 
@@ -75,7 +80,7 @@ def upload_file():
 #_name "mysite/uploads/new.tex" --bib_output_name "mysite/uploads/new.bib" --log_file_path "mysite/uploads/new.log"
 
             subprocess.run(command_string)  # doesn't capture output
-
+		
             log_stringer = ""
             log_file = None
             try:
@@ -100,10 +105,11 @@ def upload_file():
         <a target="_blank" href={0}><input type="button" value="Download TeX file"/></a>
         <a target="_blank" href={1}><input type="button" value="Download Bib file"/></a>
         <a target="_blank" href={2}><input type="button" value="Download Log file"/></a>
-        <br>
+        {3}
+	<br>
         <br>
         <h2>LOG:</h2>
-        </form>'''.format(request.url+"download/{0}".format(filename_tex),request.url+"download/{0}".format(filename_bib),request.url+"download/{0}".format(filename_tex+".log") ) + log_stringer)
+        </form>'''.format(request.url+"download/{0}".format(filename_tex),request.url+"download/{0}".format(filename_bib),request.url+"download/{0}".format(filename_tex+".log"),command_string) + log_stringer)
 
 
     return '''
@@ -113,7 +119,8 @@ def upload_file():
     <form method=post enctype=multipart/form-data>
       <p>tex: <input type=file name=file_tex><br>
          bib: <input type=file name=file_bib><br><br>
-        <input type="checkbox" name="uncited" value="true"> Remove unused bibliography entries<br>
+        <input type="checkbox" name="uncited" value="false"> Remove unused bibliography entries<br>
+	<input type="checkbox" name="abbreviate" value="false"> Abreviate serial titles<br>
          <br><br><input type=submit value=Format>
     </form>'''
 
