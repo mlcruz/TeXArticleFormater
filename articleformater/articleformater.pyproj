@@ -21,6 +21,7 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Abbrv.py" />
     <Compile Include="menu.py" />
     <Compile Include="TeXanalyser.py" />
   </ItemGroup>

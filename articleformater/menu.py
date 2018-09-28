@@ -3,14 +3,14 @@ from TeXanalyser import Article
 import colorama
 import easygui
 import os
-
+from Abbrv import abbrv
 
 colorama.init()
 
-
-used_options = {"file_input":"dialog","uncited":"no","save_name":"default(file_new.tex)","terminator":"N/A","log_name":"default(file.log)","comment_removed":"no"}
-unused_options ={"file_input":"console", "uncited":"yes","save_name":"open save dialog","log_name":"open save dialog","comment_removed":"yes"}
+used_options = {"file_input":"dialog","uncited":"no","save_name":"default(file_new.tex)","terminator":"N/A","log_name":"default(file.log)","comment_removed":"no","abbrv":"no"}
+unused_options ={"file_input":"console", "uncited":"yes","save_name":"open save dialog","log_name":"open save dialog","comment_removed":"yes","abbrv":"yes"}
 restart = '0'
+start = '1'
 
 print(colorama.Fore.CYAN + colorama.Style.BRIGHT + "Options:\n")
 print(colorama.Fore.GREEN + "1)File input: " + colorama.Fore.LIGHTYELLOW_EX + "{0}".format(used_options["file_input"]) + " / " + colorama.Style.DIM +colorama.Fore.LIGHTBLACK_EX + "{0}".format(unused_options["file_input"]))
@@ -19,11 +19,11 @@ print(colorama.Style.BRIGHT + colorama.Fore.GREEN + "3)New file name: " + colora
 print(colorama.Style.BRIGHT + colorama.Fore.GREEN + "4)Missing entry text: " + colorama.Fore.LIGHTYELLOW_EX + "{0}".format(used_options["terminator"]))
 print(colorama.Style.BRIGHT + colorama.Fore.GREEN + "5)Log file name: " + colorama.Fore.LIGHTYELLOW_EX + "{0}".format(used_options["log_name"]) + " / " + colorama.Style.DIM +colorama.Fore.LIGHTBLACK_EX + "{0}".format(unused_options["log_name"]))
 print(colorama.Style.BRIGHT + colorama.Fore.GREEN + "6)Comment removed fields: " + colorama.Fore.LIGHTYELLOW_EX + "{0}".format(used_options["comment_removed"]) + " / " + colorama.Style.DIM +colorama.Fore.LIGHTBLACK_EX + "{0}".format(unused_options["comment_removed"]))
+print(colorama.Style.BRIGHT + colorama.Fore.GREEN + "7)Abbreviate serial titles: " + colorama.Fore.LIGHTYELLOW_EX + "{0}".format(used_options["abbrv"]) + " / " + colorama.Style.DIM +colorama.Fore.LIGHTBLACK_EX + "{0}".format(unused_options["abbrv"]))
+print(colorama.Style.BRIGHT + colorama.Fore.LIGHTBLUE_EX + "8)Abbreviate test" + colorama.Style.RESET_ALL)
 
 print(colorama.Style.BRIGHT + colorama.Fore.CYAN + "\nEnter a number to change options or 0 to continue" + colorama.Style.RESET_ALL)
 
-
-#i wish python had do-whiles..
 user_input = input()
 while (restart == '0'):
     while (user_input != "0"):
@@ -39,11 +39,8 @@ while (restart == '0'):
             (used_options["log_name"],unused_options["log_name"]) = (unused_options["log_name"],used_options["log_name"])
         elif user_input =="6":
             (used_options["comment_removed"],unused_options["comment_removed"]) = (unused_options["comment_removed"],used_options["comment_removed"])
-
-
-
-
-
+        elif user_input =="7":
+            (used_options["abbrv"],unused_options["abbrv"]) = (unused_options["abbrv"],used_options["abbrv"])
 
 
         os.system('cls')
@@ -54,20 +51,38 @@ while (restart == '0'):
         print(colorama.Style.BRIGHT + colorama.Fore.GREEN + "4)Missing entry text: " + colorama.Fore.LIGHTYELLOW_EX + "{0}".format(used_options["terminator"]))
         print(colorama.Style.BRIGHT + colorama.Fore.GREEN + "5)Log file name: " + colorama.Fore.LIGHTYELLOW_EX + "{0}".format(used_options["log_name"]) + " / " + colorama.Style.DIM +colorama.Fore.LIGHTBLACK_EX + "{0}".format(unused_options["log_name"]))
         print(colorama.Style.BRIGHT + colorama.Fore.GREEN + "6)Comment removed fields: " + colorama.Fore.LIGHTYELLOW_EX + "{0}".format(used_options["comment_removed"]) + " / " + colorama.Style.DIM +colorama.Fore.LIGHTBLACK_EX + "{0}".format(unused_options["comment_removed"]))
+        print(colorama.Style.BRIGHT + colorama.Fore.GREEN + "7)Abbreviate serial titles: " + colorama.Fore.LIGHTYELLOW_EX + "{0}".format(used_options["abbrv"]) + " / " + colorama.Style.DIM +colorama.Fore.LIGHTBLACK_EX + "{0}".format(unused_options["abbrv"]))
+        print(colorama.Style.BRIGHT + colorama.Fore.LIGHTBLUE_EX + "8)Abbreviate test" + colorama.Style.RESET_ALL)
 
 
         print(colorama.Style.BRIGHT + colorama.Fore.CYAN + "\nEnter a number to change options or 0 to continue" + colorama.Style.RESET_ALL)
 
-
         user_input = input()
 
+        if(user_input == '8'):
+            int_input = '1'
+            while(int_input == '1'):
+                print("Input text:\n")
+                entrada = input()
+                print(abreviador.isAbbrv(entrada))
+                print(abreviador.abbreviate(entrada))
+                print("Again? 1 = yes 0 = n")
+                int_input = input()
+                os.system('cls')
+
+
+           
+    if(used_options["abbrv"] == "yes"):
+        abreviador = abbrv()
+    else:
+        abreviador = 0
 
     if used_options["file_input"] == "dialog":
 
         print("Select Tex and Bib files")
-        dados = Article(easygui.fileopenbox("Select tex File",None,"*.tex"),easygui.fileopenbox("Select viv File",None,"*.bib"))
+        dados = Article(easygui.fileopenbox("Select tex File",None,"*.tex"),easygui.fileopenbox("Select viv File",None,"*.bib"),abreviador)
     else:
-        dados = Article(input("tex file location: "),input("bib file location: "))
+        dados = Article(input("tex file location: "),input("bib file location: "),abreviador)
 
     if used_options["uncited"] == "yes":
         dados.bib_data.cite_block_library = dados.bib_data.cull_useless(dados.tex_data.cited_list)

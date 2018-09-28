@@ -1,10 +1,13 @@
 import regex
+import Abbrv
 
 
 log_file_data = []
 
 class TeXIO(object):
     """Implements tex file IO and diff checking"""
+
+    
 
     def __init__(self,tex_file_location,bib_file_location):
         """Create lists containing Tex/Bib file data from file"""
@@ -100,9 +103,7 @@ class TeXIO(object):
 class Article(TeXIO):
     """Implements formating methods and initializes BibData/TexData/PreambleData objects"""
 
-    def __init__(self,tex_file_location,bib_file_location):
-
-
+    def __init__(self,tex_file_location,bib_file_location,abbrv = 0):
 
         """Separates the main file in 3 lists and initializes BibData/TexData/PreambleData objects with the data"""
         super().__init__(tex_file_location,bib_file_location)
@@ -120,7 +121,7 @@ class Article(TeXIO):
         self.current_bib_data = (self.merge_lines(self.current_bib_data))
 
         #Initializes bibliography object with bibliography data
-        self.bib_data = BibData(self.current_bib_data)
+        self.bib_data = BibData(self.current_bib_data,abbrv)
 
 
 
@@ -210,10 +211,10 @@ class BibData(GenericTex):
 
 
 
-    def __init__(self, received_data):
+    def __init__(self, received_data, abbrv):
         """Populates a list of citation objects with the bibliography file data"""
 
-        
+
         #variable for loop control. 0 = in the block ; 1 = outside of the block ; 2 = first line of the bib file
         self.end_of_cite = 2
 
@@ -259,7 +260,7 @@ class BibData(GenericTex):
                 self.end_of_cite = 1
                 
 
-                self.cite_block_library.append(Citation(self.cite_block,self.cit_type_dict))
+                self.cite_block_library.append(Citation(self.cite_block,self.cit_type_dict,abbrv))
                 self.cite_block = []
 
 
@@ -342,7 +343,7 @@ class Citation(object):
 
     """Citations represent a single reference entry in a bibliography file."""
 
-    def __init__(self, cit_data, cit_dict):
+    def __init__(self, cit_data, cit_dict,abbrv):
         """Initiliazes the citation object with raw text data from a list with data and a dictionary with the allowed attributes for each type of entry.
          Populates the attribute_data_dict atribute with data from bib file"""
 
@@ -416,9 +417,7 @@ class Citation(object):
                     line_array.pop(-2) #Removes { or " or ' from item
                     line = "".join(line_array)
                     line = line + '\n' #Adds \n
-                                        
-              
-                
+                                      
           
                 camp_type = regex.search(self.camp_pattern,line).group(1) #searches for citation camp type
 
@@ -435,7 +434,19 @@ class Citation(object):
 
 
                 if(camp_type in self.cit_allowed_list):
-                    self.attribute_data_dict.update({camp_type:camp_data}) #Populates citation if type is in allowed list
+                    if((camp_type == "journal") and abbrv != 0 ):
+                        #Abreviates serial titles
+                        if(abbrv.isAbbrv(camp_data) == False):
+                            abreviated = abbrv.abbreviate(camp_data)
+                            self.attribute_data_dict.update({camp_type:abreviated})
+                            print("-Abreviated journal title {0} from {1}\n".format(abreviated,camp_data))
+                            log_file_data.append("-Abreviated journal title {0} from {1}\n".format(abreviated,camp_data))
+                        else:
+                            self.attribute_data_dict.update({camp_type:camp_data})
+                            print("Failed to abreviate journal title {0}".format(camp_data))
+                            log_file_data.append("Failed to abreviate journal title {0}".format(camp_data))
+                    else:
+                        self.attribute_data_dict.update({camp_type:camp_data}) #Populates citation if type is in allowed list
                 else:
                     self.removed_data_dict[camp_type] = camp_data
                     self.removed_camps.append(line)
