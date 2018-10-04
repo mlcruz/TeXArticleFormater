@@ -495,7 +495,7 @@ class Citation(object):
                         #Abreviates serial titles
                         if(abbrv.isAbbrv(camp_data) == False):
                             #Removes \ from data camp so it doesnt mess abbreviation up
-                            camp_data = regex.sub(r"\\","",Article.normalize(camp_data))
+                            camp_data = regex.sub(r"[\\ \{ \} \~ \´ \` \¨ \/ \u0022 ]","",Article.normalize(camp_data))
                             abreviated = abbrv.abbreviate(camp_data)
                             #Re insert \& from data camp
                             camp_data = regex.sub(r"\&","\&",Article.normalize(camp_data))
