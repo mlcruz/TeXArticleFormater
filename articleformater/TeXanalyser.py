@@ -103,8 +103,6 @@ class TeXIO(object):
                 log_writer.write(line)
 
 
-
-
 class Article(TeXIO):
     """Implements formating methods and initializes BibData/TexData/PreambleData objects"""
 
@@ -198,6 +196,9 @@ class Article(TeXIO):
 
         return return_str
 
+
+    def abbreviate_list(list,allowed_list):
+        """Abbreviates every string in a list when its type is in the allowed_list"""
 
 class GenericTex(object):
     """Generic class implementing IO and diff checking to be inherited by BibData/TexData/PreambleData objects"""
@@ -505,20 +506,20 @@ class Citation(object):
 
                 if(camp_type in self.cit_allowed_list):
                     if((camp_type == "journal") and abbrv != 0 ):
-                        #Abreviates serial titles
+                        #abbreviates serial titles
                         if(abbrv.isAbbrv(camp_data) == False):
                             #Removes \ from data camp so it doesnt mess abbreviation up
                             camp_data = regex.sub(r"[\\\{\}\'\/\~\^\º\´\`]","",Article.normalize(camp_data))
-                            abreviated = abbrv.abbreviate(camp_data)
+                            abbreviated = abbrv.abbreviate(camp_data)
                             #Re insert \& from data camp
                             camp_data = regex.sub(r"\&","\&",Article.normalize(camp_data))
-                            self.attribute_data_dict.update({camp_type:abreviated})
-                            print("-Abreviated journal title {0} from {1}\n".format(abreviated,camp_data))
-                            log_file_data.append("-Abreviated journal title {0} from {1}\n".format(abreviated,camp_data))
+                            self.attribute_data_dict.update({camp_type:abbreviated})
+                            print("-abbreviated journal title {0} from {1}\n".format(abbreviated,camp_data))
+                            log_file_data.append("-abbreviated journal title {0} from {1}\n".format(abbreviated,camp_data))
                         else:
                             self.attribute_data_dict.update({camp_type:camp_data})
-                            print("Failed to abreviate journal title {0}".format(camp_data))
-                            log_file_data.append("Failed to abreviate journal title {0}".format(camp_data))
+                            print("Failed to abbreviate journal title {0}".format(camp_data))
+                            log_file_data.append("Failed to abbreviate journal title {0}".format(camp_data))
                     else:
                         self.attribute_data_dict.update({camp_type:camp_data}) #Populates citation if type is in allowed list
                 else:
