@@ -360,7 +360,7 @@ class TexData(GenericTex):
             if bool(regex.findall(self.cite_pattern,line)):
                 for item in regex.findall(self.cite_pattern,line):
                     for list_item in item.split(","):
-                        self.cited_list.append(item)
+                        self.cited_list.append(list_item)
 
 
 class PreambleData(GenericTex):
