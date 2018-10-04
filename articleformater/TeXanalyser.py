@@ -3,6 +3,7 @@ import Abbrv
 import unicodedata
 
 
+
 log_file_data = []
 
 class TeXIO(object):
@@ -19,11 +20,14 @@ class TeXIO(object):
         self.bib_file_location = bib_file_location
         self.log_file_location = (("{0}{1}").format(((self.bib_file_location).split(".")[0]),".log"))
 
+        
+
         #reads Tex/Bib file, #Handles utf8/latin1 encoding and push to list.
         try:
-            with open(tex_file_location,"r",encoding="utf8") as tex_reader:
+            with open(tex_file_location,"r",encoding="utf-8-sig") as tex_reader:
                 self.original_tex_data = tex_reader.readlines()
                 self.current_tex_data = self.original_tex_data
+
 
 
         except UnicodeDecodeError:
@@ -43,7 +47,7 @@ class TeXIO(object):
 
 
         try:
-            with open(bib_file_location,"r",encoding="utf8") as bib_reader:
+            with open(bib_file_location,"r",encoding="utf-8-sig") as bib_reader:
                 self.original_bib_data = bib_reader.readlines()
                 self.current_bib_data = self.original_bib_data
         except UnicodeDecodeError:
@@ -457,39 +461,46 @@ class Citation(object):
                     line = line + '\n' #Adds \n
 
 
-                camp_type = regex.search(self.camp_pattern,line).group(1) #searches for citation camp type
+                try:
+                    camp_type = regex.search(self.camp_pattern,line).group(1) #Try searching for camp type
+                except Exception as e:
+                    camp_type = "error"
+                    log_file_data.append("Failed to match camp type at {0}".format(line))
 
 
-                #Try searching for un-normalized camp data
+                #Try searching for un-normalized camp data. Tries a stricter matching and goes generalizing it if it fails
                 try: 
                     #Some optmizations to avoid computing regular expressions on large, useless blocks of text
-                    if(camp_type != "abstract" and camp_type != "keywords" and camp_type != "issn" and camp_type != "doi" and camp_type !="timestamp" and camp_type != "acknowledgement" and camp_type != "bibsource"):
+                    if(camp_type != "abstract" and camp_type != "error" and camp_type != "keywords" and camp_type != "issn" and camp_type != "doi" and camp_type !="timestamp" and camp_type != "acknowledgement" and camp_type != "bibsource"):
+                        if len(line) > 500:
+                            #Trunca linha muito grande
+                            line = line[:500]
                         camp_data = regex.search(self.data_pattern,line).group(1) #Searches for citation camp data
                     else:
                         camp_data = None
                 except Exception as e:
-                    print("-Error on line {0}. Trying again after utf-8 normalization".format(line))
-                    log_file_data.append("-Error on line {0}. Trying again after utf-8 normalization".format(line))
+                    print("-Error on line {0}. Trying again after utf-8 normalization\n".format(line))
+                    log_file_data.append("-Error on line {0}. Trying again after utf-8 normalization\n".format(line))
                     try:
                         camp_data = regex.search(self.data_pattern,Article.normalize(line)).group(1)
                         print("--Success!".format(line))
-                        log_file_data.append("--Success!")
+                        log_file_data.append("--Success!\n")
                     except Exception as t:
-                        print("Failed to extract data after normalization at line {0}. Trying more generic capture".format(line))
-                        log_file_data.append("Failed to extract data after normalization at line {0}. Trying more generic capture".format(line))
+                        print("Failed to extract data after normalization at line {0}. Trying more generic capture\n".format(line))
+                        log_file_data.append("Failed to extract data after normalization at line {0}. Trying more generic capture\n".format(line))
                         try:
                             camp_data = regex.search(self.generic_data_pattern,line).group(1)
                             print("---Success!".format(line))
-                            log_file_data.append("---Success!")
+                            log_file_data.append("---Success!\n")
                         except Exception as q:
                             try:
                                 camp_data = regex.search(self.generic_data_pattern,Article.normalize(line)).group(1)
                                 print("Success!".format(line))
-                                log_file_data.append("---Success!")
+                                log_file_data.append("---Success!\n")
                             except Exception as w:
-                                print("Error matching camp data at {0}").format(line)
-                                log_file_data.append("Error matching camp data at {0}".format(line))
-                                camp_data = "error at {0}".format(line)
+                                print("Error matching camp data at {0}".format(line))
+                                log_file_data.append("Error matching camp data at {0}\n".format(line))
+                                camp_data = "error at {0}\n".format(line)
 
 
                 if(camp_type in self.cit_allowed_list):
@@ -516,6 +527,9 @@ class Citation(object):
                     print("-removed {0} from {1}\n".format(camp_type,self.label_name)) #Populates removed items
                     log_file_data.append("-removed {0} from {1}\n".format(camp_type,self.label_name))
 
+    def search_data(data):
+        """Function to be called from a newly created thread to search for data in a line"""
+        return regex.search(self.data_pattern,data).group(1) #Searches for citation camp data
 
 
 
