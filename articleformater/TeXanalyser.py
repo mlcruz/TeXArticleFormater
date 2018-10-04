@@ -465,29 +465,28 @@ class Citation(object):
                     else:
                         camp_data = None
                 except Exception as e:
-                    print("Error on line {0}. Trying again after utf-8 normalization".format(line))
+                    print("-Error on line {0}. Trying again after utf-8 normalization".format(line))
+                    log_file_data.append("-Error on line {0}. Trying again after utf-8 normalization".format(line))
                     try:
                         camp_data = regex.search(self.data_pattern,Article.normalize(line)).group(1)
-                        print("Success!".format(line))
+                        print("--Success!".format(line))
+                        log_file_data.append("--Success!")
                     except Exception as t:
                         print("Failed to extract data after normalization at line {0}. Trying more generic capture".format(line))
+                        log_file_data.append("Failed to extract data after normalization at line {0}. Trying more generic capture".format(line))
                         try:
                             camp_data = regex.search(self.generic_data_pattern,line).group(1)
-                            print("Success!".format(line))
+                            print("---Success!".format(line))
+                            log_file_data.append("---Success!")
                         except Exception as q:
                             try:
                                 camp_data = regex.search(self.generic_data_pattern,Article.normalize(line)).group(1)
                                 print("Success!".format(line))
+                                log_file_data.append("---Success!")
                             except Exception as w:
                                 print("Error matching camp data at {0}").format(line)
+                                log_file_data.append("Error matching camp data at {0}".format(line))
                                 camp_data = "error at {0}".format(line)
-
-                          
-
-                        
-
-
-                   
 
 
                 if(camp_type in self.cit_allowed_list):
