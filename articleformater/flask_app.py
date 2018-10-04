@@ -3,6 +3,7 @@ import secrets
 from flask import Flask, request, redirect, url_for, send_from_directory, send_file
 from werkzeug.utils import secure_filename
 import subprocess
+import Abbrv
 
 
 UPLOAD_FOLDER = '/home/mlcruz/mysite/uploads'
@@ -31,13 +32,13 @@ def download_file(filename):
 def upload_file():
     if request.method == 'POST':
         if request.form.get('uncited'):
-            checked_uncited = "y"
+            checked_uncited = 'y'
         else:
-            checked_uncited = "n"
+            checked_uncited = 'n'
         if request.form.get('abbreviate'):
-            checked_abbreviate = "y"
+            checked_abbreviate = 'y'
         else:
-            checked_abbreviate = "n"
+            checked_abbreviate = 'n'
         # check if the post request has the file part
         if ('file_tex' or 'file_bib') not in request.files:
             return redirect(request.url)
@@ -71,7 +72,7 @@ def upload_file():
             "--bib_output_name",bib_out_string,
             "--log_file_path",log_out_string,
             "--remove_uncited",checked_uncited,
-	    "--abbreviate",checked_abbreviate
+	    "--abbreviate",checked_abbreviate,
             ]
 
 
@@ -80,7 +81,7 @@ def upload_file():
 #_name "mysite/uploads/new.tex" --bib_output_name "mysite/uploads/new.bib" --log_file_path "mysite/uploads/new.log"
 
             subprocess.run(command_string)  # doesn't capture output
-		
+
             log_stringer = ""
             log_file = None
             try:
@@ -91,7 +92,7 @@ def upload_file():
                     log_stringer = log_stringer + line +"<br>"
 
             except:
-                log_stringer = "Error: Check bibliography formating, its possible that brackets are not balanced in the bibliography file"
+                log_stringer = "Error: Subprocess exited with error. Probably some weird character or unbalanced brackets in the bibliography is messing things up"
 
 
 
@@ -119,10 +120,34 @@ def upload_file():
     <form method=post enctype=multipart/form-data>
       <p>tex: <input type=file name=file_tex><br>
          bib: <input type=file name=file_bib><br><br>
-        <input type="checkbox" name="uncited" value="false"> Remove unused bibliography entries<br>
-	<input type="checkbox" name="abbreviate" value="false"> Abreviate serial titles<br>
+        <input type="checkbox" name="uncited" value="true"> Remove unused bibliography entries<br>
+	<input type="checkbox" name="abbreviate" value="true"> Abreviate serial titles<br>
          <br><br><input type=submit value=Format>
     </form>'''
 
 
 
+@app.route('/abbrv', methods=['GET', 'POST'])
+def abreviate():
+    if request.method == 'POST':
+        abbreviator = Abbrv.abbrv("/home/mlcruz/mysite/TeXArticleFormater/articleformater/pickle.obj")
+        abreviado = abbreviator.abbreviate(request.form['abbreviate'])
+        return '''
+        <!doctype html>
+        <title>Abbreviate</title>
+        <h1>Abbreviate</h1>
+        <form method=post enctype=multipart/form-data>
+            Serial title: <input type=text name=abbreviate><br><br>
+            Abbreviated title:<textarea disabled>{0}</textarea>
+            <br><br><input type=submit value=Abbreviate>
+        </form>'''.format(abreviado)
+
+    return '''
+    <!doctype html>
+    <title>Abbreviate</title>
+    <h1>Abbreviate</h1>
+    <form method=post enctype=multipart/form-data>
+         Serial title: <input type=text name=abbreviate disable><br><br>
+         Abbreviated title: <textarea disabled></textarea>
+         <br><br><input type=submit value=Abbreviate>
+    </form>'''

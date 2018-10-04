@@ -12,7 +12,7 @@ from TeXanalyser import Article
 @click.option('--log_file_path',default="default",help='Output .log file path. Defaults to file.log in the same folder')
 @click.option('--comment_removed',default="n",help='y/n Comments removed fields from bib data. default: n')
 @click.option('--terminator',default="N/A",help="String to fill missing entries with. Defaults to N/A")
-@click.option('--abbreviate',default="N",help="Y/N Abbreviate serial titles?. Defaults to N")
+@click.option('--abbreviate',default="n",help="Y/N Abbreviate serial titles?. Defaults to N")
 
 def console_wrapper(bib_path,tex_path,tex_output_name,bib_output_name,remove_uncited,log_file_path,comment_removed,terminator,abbreviate):
 	if abbreviate == ("y" or "yes" or "YES" or "Y"):
@@ -21,6 +21,7 @@ def console_wrapper(bib_path,tex_path,tex_output_name,bib_output_name,remove_unc
 		abreviador = 0
 
 	dados = Article(tex_path,bib_path,abreviador)
+
 	if remove_uncited == ("y" or "yes" or "YES" or "Y"):
 		dados.bib_data.cite_block_library = dados.bib_data.cull_useless(dados.tex_data.cited_list)
 

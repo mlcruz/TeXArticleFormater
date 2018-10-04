@@ -7,7 +7,7 @@ log_file_data = []
 class TeXIO(object):
     """Implements tex file IO and diff checking"""
 
-    
+
 
     def __init__(self,tex_file_location,bib_file_location):
         """Create lists containing Tex/Bib file data from file"""
@@ -222,16 +222,16 @@ class BibData(GenericTex):
         self.cite_block =[]
         self.cite_block_library =[]
         label_pattern = regex.compile(r"@.+{\K[\w \d \: \_]+(?<!,$)",regex.IGNORECASE)
-        
-        #Fixes a weird bug related to reading the first entry in a file 
-        if(received_data[0][0] == '﻿'): 
+
+        #Fixes a weird bug related to reading the first entry in a file
+        if(received_data[0][0] == ''):
             lista_temp = list(received_data[0])
             lista_temp.pop(0)
             received_data[0] = "".join(lista_temp)
 
 
         for line in received_data:
-            
+
 
 
             #If the line starts an entry, begin another block
@@ -258,7 +258,7 @@ class BibData(GenericTex):
 
 
                 self.end_of_cite = 1
-                
+
 
                 self.cite_block_library.append(Citation(self.cite_block,self.cit_type_dict,abbrv))
                 self.cite_block = []
@@ -275,8 +275,8 @@ class BibData(GenericTex):
             file_data.append(current_line)
 
             #Write attribute data dict
-            
-            
+
+
             for key, value in citation.attribute_data_dict.items():
                 if bool(value):
                     current_line = "\t{0} = {{{1}}},{2}".format(key,value,"\n")
@@ -400,7 +400,7 @@ class Citation(object):
         for type in self.cit_allowed_list:
             self.attribute_data_dict[type] = ''
 
-            
+
         #Populate attribute_data_dict from data with the camp type as key and value as value.
         for key,line in enumerate(self.cit_data):
             if key > 0: #Skips matching the first line
@@ -417,14 +417,14 @@ class Citation(object):
                     line_array.pop(-2) #Removes { or " or ' from item
                     line = "".join(line_array)
                     line = line + '\n' #Adds \n
-                                      
-          
+
+
                 camp_type = regex.search(self.camp_pattern,line).group(1) #searches for citation camp type
 
-                
+
                 try:
                     #Some optmizations to avoid computing regular expressions on large, useless blocks of text
-                    if(camp_type != "abstract" and camp_type != "keywords" and camp_type != "issn" and camp_type != "doi" and camp_type !="timestamp"):
+                    if(camp_type != "abstract" and camp_type != "keywords" and camp_type != "issn" and camp_type != "doi" and camp_type !="timestamp" and camp_type != "acknowledgement" and camp_type != "bibsource"):
                         camp_data = regex.search(self.data_pattern,line).group(1) #Searches for citation camp data
                     else:
                         camp_data = None
