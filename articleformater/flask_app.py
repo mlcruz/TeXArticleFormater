@@ -92,7 +92,7 @@ def upload_file():
                     log_stringer = log_stringer + line +"<br>"
 
             except:
-                log_stringer = "Error: Subprocess exited with error. Probably some weird character or unbalanced brackets in the bibliography is messing things up"
+                log_stringer = "Error: Subprocess exited with error. Probably some weird character or some weird entry or unbalanced brackets in the bibliography is messing things up"
 
 
 
