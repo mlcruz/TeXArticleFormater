@@ -494,7 +494,11 @@ class Citation(object):
                     if((camp_type == "journal") and abbrv != 0 ):
                         #Abreviates serial titles
                         if(abbrv.isAbbrv(camp_data) == False):
-                            abreviated = abbrv.abbreviate(Article.normalize(camp_data))
+                            #Removes \ from data camp so it doesnt mess abbreviation up
+                            camp_data = regex.sub(r"\\","",Article.normalize(camp_data))
+                            abreviated = abbrv.abbreviate(camp_data)
+                            #Re insert \& from data camp
+                            camp_data = regex.sub(r"\&","\&",Article.normalize(camp_data))
                             self.attribute_data_dict.update({camp_type:abreviated})
                             print("-Abreviated journal title {0} from {1}\n".format(abreviated,camp_data))
                             log_file_data.append("-Abreviated journal title {0} from {1}\n".format(abreviated,camp_data))
