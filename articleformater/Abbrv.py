@@ -51,8 +51,12 @@ class abbrv:
         if input_text in self.data_dict:
             return self.data_dict[input_text]
         else:
-            #Abreviates using AbbrevIso app(see github)
+            #Abreviates using an AbbrevIso nodejs server instance(see github)
+            #https://github.com/marcinwrochna/abbrevIso
+            #Copyright (c) 2017 Marcin Wrochna
+
             passada = input_text.replace(" ","_")
+            #Temporary node js server
             r = requests.get("http://criolipolisepirassununga.com.br:21103/?{0}".format(passada))
             return r.text
 
