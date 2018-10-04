@@ -351,7 +351,7 @@ class TexData(GenericTex):
     def __init__(self, received_data):
         super().__init__(received_data)
         #pattern to serach for cited objects
-        self.cite_pattern = regex.compile(r"\\cite{\K[\d \w \:]+",regex.IGNORECASE)
+        self.cite_pattern = regex.compile(r"\\cite{\K[\d \w \: \, \s]+",regex.IGNORECASE)
 
         #List of cited objects
         self.cited_list = []
@@ -359,7 +359,8 @@ class TexData(GenericTex):
         for line in self.received_data:
             if bool(regex.findall(self.cite_pattern,line)):
                 for item in regex.findall(self.cite_pattern,line):
-                    self.cited_list.append(item)
+                    for list_item in item.split(","):
+                        self.cited_list.append(item)
 
 
 class PreambleData(GenericTex):
