@@ -123,7 +123,7 @@ def upload_file():
         <input type="checkbox" name="uncited" value="true"> Remove unused bibliography entries<br>
 	<input type="checkbox" name="abbreviate" value="true"> Abreviate serial titles<br>
          <br><br><input type=submit value=Format>
-    </form>'''
+    </form><br><br><br><br><br><br><br><br><br><br><br><br><br><a href="https://github.com/mlcruz/TeXArticleFormater">Project page @ github</a>'''
 
 
 
