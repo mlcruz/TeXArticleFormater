@@ -359,8 +359,10 @@ class TexData(GenericTex):
         for line in self.received_data:
             if bool(regex.findall(self.cite_pattern,line)):
                 for item in regex.findall(self.cite_pattern,line):
-                    for list_item in item.split(","):
-                        self.cited_list.append(list_item)
+                    separeted_list = item.split(",")
+                    for list_item in separeted_list:
+                        if list_item not in self.cited_list:
+                            self.cited_list.append(regex.sub(" ","",list_item))
 
 
 class PreambleData(GenericTex):
