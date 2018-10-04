@@ -5,6 +5,7 @@ import easygui
 import os
 from Abbrv import abbrv
 
+
 colorama.init()
 
 used_options = {"file_input":"dialog","uncited":"no","save_name":"default(file_new.tex)","terminator":"N/A","log_name":"default(file.log)","comment_removed":"no","abbrv":"no"}
@@ -83,6 +84,8 @@ while (restart == '0'):
         dados = Article(easygui.fileopenbox("Select tex File",None,"*.tex"),easygui.fileopenbox("Select viv File",None,"*.bib"),abreviador)
     else:
         dados = Article(input("tex file location: "),input("bib file location: "),abreviador)
+
+    dados.init_bib()
 
     if used_options["uncited"] == "yes":
         dados.bib_data.cite_block_library = dados.bib_data.cull_useless(dados.tex_data.cited_list)

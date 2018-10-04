@@ -1,5 +1,6 @@
 import regex
 import Abbrv
+import unicodedata
 
 
 log_file_data = []
@@ -105,6 +106,7 @@ class Article(TeXIO):
 
     def __init__(self,tex_file_location,bib_file_location,abbrv = 0):
 
+        self.abbrv_local = abbrv
         """Separates the main file in 3 lists and initializes BibData/TexData/PreambleData objects with the data"""
         super().__init__(tex_file_location,bib_file_location)
 
@@ -116,12 +118,13 @@ class Article(TeXIO):
         self.preamble_data = PreambleData(self.current_tex_data[:preamble_found])
         self.tex_data = TexData(self.current_tex_data[preamble_found:])
 
-
+    def init_bib(self):
+        """Initializes and formats bibliography file"""
         #Merge multiline entries in bibliography file
         self.current_bib_data = (self.merge_lines(self.current_bib_data))
 
         #Initializes bibliography object with bibliography data
-        self.bib_data = BibData(self.current_bib_data,abbrv)
+        self.bib_data = BibData(self.current_bib_data,self.abbrv_local)
 
 
 
@@ -162,6 +165,35 @@ class Article(TeXIO):
                 line_appended = 1
 
         return single_line_list
+
+
+    def normalize(input_text):
+        """Normalizes strings and deals with some special chars"""
+        return_str = regex.sub(r'\u00DF','ss',input_text,)
+        return_str = regex.sub(r'\u1E9E','SS',return_str) # scharfes S
+        return_str = regex.sub(r'\u0111','d',return_str,)
+        return_str = regex.sub(r'\u0110','D',return_str) # crossed D
+        return_str = regex.sub(r'\u00F0','d',return_str,)
+        return_str = regex.sub(r'\u00D0','D',return_str) # eth
+        return_str = regex.sub(r'\u00FE','th',return_str,)
+        return_str = regex.sub(r'\u00DE','TH',return_str) # thorn
+        return_str = regex.sub(r'\u0127','h',return_str,)
+        return_str = regex.sub(r'\u0126','H',return_str) # H-bar
+        return_str = regex.sub(r'\u0142','l',return_str,)
+        return_str = regex.sub(r'\u0141','L',return_str) # L with stroke
+        return_str = regex.sub(r'\u0153','oe',return_str,)
+        return_str = regex.sub(r'\u0152','Oe',return_str) # Oe ligature
+        return_str = regex.sub(r'\u00E6','ae',return_str,)
+        return_str = regex.sub(r'\u00C6','Ae',return_str) # Ae ligature
+        return_str = regex.sub(r'\u0131','i',return_str,) #dotless i
+        return_str = regex.sub(r'\u00F8','o',return_str)
+        return_str = regex.sub(r'\u00D8','O',return_str) # o with stroke
+        return_str = regex.sub(r'[\u00B7\u02BA\uFFFD]','',return_str) # Catalan middle dot, double prime
+        return_str = unicodedata.normalize('NFKD',return_str)
+        return_str = regex.sub(r'[\u0300-\u036f]','',return_str) #Splits string into simple characters + modifiers and remove them
+
+        return return_str
+
 
 class GenericTex(object):
     """Generic class implementing IO and diff checking to be inherited by BibData/TexData/PreambleData objects"""
@@ -368,6 +400,9 @@ class Citation(object):
         #pattern to seach for camp data.
         self.data_pattern = regex.compile(r"^(?:[\s\w]*=[\s \{ \"]*)([a-zA-Z\u00C0-\u024F \s \d \- \. \' \– \( \) \$ \[ \] \% \’ \… \& \\ \/ \* \w \, \~ \{ \} \: \. \u0022 \` \~ \^ \¨ \# \@ \! \* \_ \+ \- \? \| \; \º \° \ç]*)(?:[\} \"]?,)$",(self.REGEX_FLAGS))
 
+        #more generic patter to search for camp data
+        self.generic_data_pattern = regex.compile(r"(?:\s[\{ \"\'])([\w \s]+)",self.REGEX_FLAGS)
+
         #Searches for citation type, removing any whitespace from citation type
         try:
             self.citation_type = regex.search(self.type_pattern,cit_data[0]).group(1)
@@ -380,7 +415,7 @@ class Citation(object):
         try:
             self.label_name = regex.search(self.label_pattern,cit_data[0]).group(1)
         except IndexError as err:
-            print("Something bad happend here. Probably some weird character is breaking stuff")
+            print("Error: Can't find label name")
             log_file_data.append("")
             log_file_data.append(str(err))
             self.label_name = 'error'
@@ -422,15 +457,37 @@ class Citation(object):
                 camp_type = regex.search(self.camp_pattern,line).group(1) #searches for citation camp type
 
 
-                try:
+                #Try searching for un-normalized camp data
+                try: 
                     #Some optmizations to avoid computing regular expressions on large, useless blocks of text
                     if(camp_type != "abstract" and camp_type != "keywords" and camp_type != "issn" and camp_type != "doi" and camp_type !="timestamp" and camp_type != "acknowledgement" and camp_type != "bibsource"):
                         camp_data = regex.search(self.data_pattern,line).group(1) #Searches for citation camp data
                     else:
                         camp_data = None
                 except Exception as e:
-                    print("Error on line {0}".format(line))
-                    camp_data = "error"
+                    print("Error on line {0}. Trying again after utf-8 normalization".format(line))
+                    try:
+                        camp_data = regex.search(self.data_pattern,Article.normalize(line)).group(1)
+                        print("Success!".format(line))
+                    except Exception as t:
+                        print("Failed to extract data after normalization at line {0}. Trying more generic capture".format(line))
+                        try:
+                            camp_data = regex.search(self.generic_data_pattern,line).group(1)
+                            print("Success!".format(line))
+                        except Exception as q:
+                            try:
+                                camp_data = regex.search(self.generic_data_pattern,Article.normalize(line)).group(1)
+                                print("Success!".format(line))
+                            except Exception as w:
+                                print("Error matching camp data at {0}").format(line)
+                                camp_data = "error at {0}".format(line)
+
+                          
+
+                        
+
+
+                   
 
 
                 if(camp_type in self.cit_allowed_list):
