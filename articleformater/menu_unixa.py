@@ -21,6 +21,7 @@ def console_wrapper(bib_path,tex_path,tex_output_name,bib_output_name,remove_unc
 		abreviador = 0
 
 	dados = Article(tex_path,bib_path,abreviador)
+	dados.init_bib()
 
 	if remove_uncited == ("y" or "yes" or "YES" or "Y"):
 		dados.bib_data.cite_block_library = dados.bib_data.cull_useless(dados.tex_data.cited_list)
