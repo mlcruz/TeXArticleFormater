@@ -129,7 +129,7 @@ def upload_file():
          bib: <input type=file name=file_bib><br><br>
          <input type="checkbox" name="check_format" value="true" checked>Format bibliography file<br>
          <input type="checkbox" name="uncited" value="true"> Remove unused bibliography entries - needs format enabled<br>
-         <input type="checkbox" name="abbreviate" value="true"> Abreviate serial titles<br>
+         <input type="checkbox" name="abbreviate" value="true"> Abbreviate serial titles<br>
          <br><br><input type=submit value=Format>
     </form><br><br><br><br><br><br><br><br><br><br><br><br><br><a href="https://github.com/mlcruz/TeXArticleFormater">Project page @ github</a>'''
 
