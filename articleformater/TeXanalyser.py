@@ -264,8 +264,8 @@ class Article(TeXIO):
                     #Re insert \& from data camp
                     camp_data = regex.sub(r"\&","\&",Article.normalize(abbreviated))
                     return_list.append(" \t{0} = {{{1}}}\n".format(camp_type,camp_data))
-                    print("Abbreviated {0} to {1}".format(old_camp_data,camp_data))
-                    log_file_data.append("Abbreviated {0} to {1}".format(old_camp_data,camp_data))
+                    print("Abbreviated {0} to {1}\n".format(old_camp_data,camp_data))
+                    log_file_data.append("Abbreviated {0} to {1}\n".format(old_camp_data,camp_data))
                 else:
                     #Returns line unchanged on failure
                     return_list.append(old_line)
