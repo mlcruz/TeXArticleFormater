@@ -20,7 +20,7 @@ class TeXIO(object):
         self.bib_file_location = bib_file_location
         self.log_file_location = (("{0}{1}").format(((self.bib_file_location).split(".")[0]),".log"))
 
-        
+
 
         #reads Tex/Bib file, #Handles utf8/latin1 encoding and push to list.
         try:
@@ -203,7 +203,7 @@ class Article(TeXIO):
 
     def abbreviate_list(input_list,allowed_list):
         """Abbreviates every string in a list when its type is in the allowed_list"""
-        
+
         #pattern to search for camp type. Matches camp type in every line
         camp_pattern = regex.compile(r"^(?:\s*)(\b\w+)")
 
@@ -213,8 +213,8 @@ class Article(TeXIO):
         #more generic patter to search for camp data
         #generic_data_pattern = regex.compile(r"(?:\s[\{ \"\'])([\w \s]+)",self.REGEX_FLAGS)
         generic_data_pattern = regex.compile(r"(?:\s[\{\"\']+)([^\}\"]+)")
-        
-        abbreviator = Abbrv.abbrv()
+
+        abbreviator = Abbrv.abbrv('/home/mlcruz/mysite/TeXArticleFormater/articleformater/pickle.obj')
         return_list = []
 
         for line in input_list:
@@ -226,7 +226,7 @@ class Article(TeXIO):
                 camp_type = ""
 
             if (camp_type.lower() in allowed_list):
-                
+
 
                 #Clean line for easier regex matching
                 if(line.strip()[-1] != ','):
@@ -277,7 +277,7 @@ class Article(TeXIO):
 
 
 
-            
+
 
 
 
@@ -554,7 +554,7 @@ class Citation(object):
 
 
                 #Try searching for un-normalized camp data. Tries a stricter matching and goes generalizing it if it fails
-                try: 
+                try:
                     #Some optmizations to avoid computing regular expressions on large, useless blocks of text
                     if(camp_type != "abstract" and camp_type != "error" and camp_type != "keywords" and camp_type != "issn" and camp_type != "doi" and camp_type !="timestamp" and camp_type != "acknowledgement" and camp_type != "bibsource"):
                         if len(line) > 500:

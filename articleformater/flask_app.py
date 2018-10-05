@@ -39,6 +39,12 @@ def upload_file():
             checked_abbreviate = 'y'
         else:
             checked_abbreviate = 'n'
+
+        if request.form.get('check_format'):
+            checked_format = 'y'
+        else:
+            checked_format = 'n'
+
         # check if the post request has the file part
         if ('file_tex' or 'file_bib') not in request.files:
             return redirect(request.url)
@@ -73,6 +79,7 @@ def upload_file():
             "--log_file_path",log_out_string,
             "--remove_uncited",checked_uncited,
 	    "--abbreviate",checked_abbreviate,
+	    "--format_file",checked_format,
             ]
 
 
@@ -106,11 +113,11 @@ def upload_file():
         <a target="_blank" href={0}><input type="button" value="Download TeX file"/></a>
         <a target="_blank" href={1}><input type="button" value="Download Bib file"/></a>
         <a target="_blank" href={2}><input type="button" value="Download Log file"/></a>
-        {3}
+
 	<br>
         <br>
         <h2>LOG:</h2>
-        </form>'''.format(request.url+"download/{0}".format(filename_tex),request.url+"download/{0}".format(filename_bib),request.url+"download/{0}".format(filename_tex+".log"),command_string) + log_stringer)
+        </form>'''.format(request.url+"download/{0}".format(filename_tex),request.url+"download/{0}".format(filename_bib),request.url+"download/{0}".format(filename_tex+".log")) + log_stringer)
 
 
     return '''
@@ -120,8 +127,9 @@ def upload_file():
     <form method=post enctype=multipart/form-data>
       <p>tex: <input type=file name=file_tex><br>
          bib: <input type=file name=file_bib><br><br>
-        <input type="checkbox" name="uncited" value="true"> Remove unused bibliography entries<br>
-	<input type="checkbox" name="abbreviate" value="true"> Abreviate serial titles<br>
+         <input type="checkbox" name="check_format" value="true" checked>Format bibliography file<br>
+         <input type="checkbox" name="uncited" value="true"> Remove unused bibliography entries - needs format enabled<br>
+         <input type="checkbox" name="abbreviate" value="true"> Abreviate serial titles<br>
          <br><br><input type=submit value=Format>
     </form><br><br><br><br><br><br><br><br><br><br><br><br><br><a href="https://github.com/mlcruz/TeXArticleFormater">Project page @ github</a>'''
 
