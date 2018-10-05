@@ -13,24 +13,32 @@ from TeXanalyser import Article
 @click.option('--comment_removed',default="n",help='y/n Comments removed fields from bib data. default: n')
 @click.option('--terminator',default="N/A",help="String to fill missing entries with. Defaults to N/A")
 @click.option('--abbreviate',default="n",help="Y/N Abbreviate serial titles?. Defaults to N")
+@click.option('--format_file',default="y",help="Y/N Format file?. Defaults to Y")
 
-def console_wrapper(bib_path,tex_path,tex_output_name,bib_output_name,remove_uncited,log_file_path,comment_removed,terminator,abbreviate):
+
+def console_wrapper(bib_path,tex_path,tex_output_name,bib_output_name,remove_uncited,log_file_path,comment_removed,terminator,abbreviate,format_file):
 	if abbreviate == ("y" or "yes" or "YES" or "Y"):
 		abreviador = abbrv("/home/mlcruz/mysite/TeXArticleFormater/articleformater/pickle.obj")
 	else:
 		abreviador = 0
 
 	dados = Article(tex_path,bib_path,abreviador)
-	dados.init_bib()
+	
+	
+	if format_file == ("y" or "yes" or "YES" or "Y"):
+		dados.init_bib()
+	
+		if remove_uncited == ("y" or "yes" or "YES" or "Y"):
+			dados.bib_data.cite_block_library = dados.bib_data.cull_useless(dados.tex_data.cited_list)
 
-	if remove_uncited == ("y" or "yes" or "YES" or "Y"):
-		dados.bib_data.cite_block_library = dados.bib_data.cull_useless(dados.tex_data.cited_list)
-
-	if comment_removed == ("y" or "yes" or "YES" or "Y"):
-		dados.current_bib_data = dados.bib_data.generate_writable_bib_object(terminator,1)
-	else:
-		dados.current_bib_data = dados.bib_data.generate_writable_bib_object(terminator,0)
-
+		if comment_removed == ("y" or "yes" or "YES" or "Y"):
+			dados.current_bib_data = dados.bib_data.generate_writable_bib_object(terminator,1)
+		else:
+			dados.current_bib_data = dados.bib_data.generate_writable_bib_object(terminator,0)
+	elif( (format_file == ("n" or "no" or "NO" or "N")) and  abreviador != 0) :
+		dados.current_bib_data = Article.abbreviate_list(dados.current_bib_data,['article'])
+		
+	
 	if tex_output_name == "default":
 		dados.write_tex()
 
