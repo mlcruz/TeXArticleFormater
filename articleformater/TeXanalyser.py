@@ -141,10 +141,12 @@ class Article(TeXIO):
         #list to be returned by the function
         single_line_list = []
 
+        comment_pattern = regex.compile(r'(?<!\\)%.+\n')
+
         for line in a_file:
             #Remove comments
-            #comment_pattern = regex.compile(r'(?<!\\)%.+\n')
             #line = regex.sub(comment_pattern,"",line)
+            
             #matches every line terminated by , } "
             if regex.match(r'^.*([,\"}])\s*$',line):
 
@@ -531,7 +533,8 @@ class Citation(object):
         #Populate attribute_data_dict from data with the camp type as key and value as value.
         for key,line in enumerate(self.cit_data):
             if key > 0: #Skips matching the first line
-
+                
+                old_line = line
                 #Clean line for easier regex matching
                 if(line.strip()[-1] != ','):
                     line = line.rstrip() + ',' #terminates with comma
@@ -547,7 +550,7 @@ class Citation(object):
 
 
                 try:
-                    camp_type = regex.search(self.camp_pattern,line).group(1) #Try searching for camp type
+                    camp_type = regex.search(self.camp_pattern,old_line).group(1) #Try searching for camp type
                 except Exception as e:
                     camp_type = "error"
                     log_file_data.append("Failed to match camp type at {0}".format(line))
