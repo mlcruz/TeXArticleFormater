@@ -143,8 +143,8 @@ class Article(TeXIO):
 
         for line in a_file:
             #Remove comments
-            comment_pattern = regex.compile(r'(?<!\\)%.+')
-            line = regex.sub(comment_pattern,"",line)
+            #comment_pattern = regex.compile(r'(?<!\\)%.+\n')
+            #line = regex.sub(comment_pattern,"",line)
             #matches every line terminated by , } "
             if regex.match(r'^.*([,\"}])\s*$',line):
 
