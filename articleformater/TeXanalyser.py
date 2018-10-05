@@ -508,7 +508,7 @@ class Citation(object):
         #Searches for label name
         try:
             self.label_name = regex.search(self.label_pattern,cit_data[0]).group(1)
-        except IndexError as err:
+        except Exception as err:
             print("Error: Can't find label name")
             log_file_data.append("")
             log_file_data.append(str(err))
