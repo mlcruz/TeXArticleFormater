@@ -142,6 +142,9 @@ class Article(TeXIO):
         single_line_list = []
 
         for line in a_file:
+            #Remove comments
+            comment_pattern = regex.compile(r'(?<!\\)%.+')
+            line = regex.sub(comment_pattern,"",line)
             #matches every line terminated by , } "
             if regex.match(r'^.*([,\"}])\s*$',line):
 
@@ -193,6 +196,7 @@ class Article(TeXIO):
         return_str = regex.sub(r'[\u00B7\u02BA\uFFFD]','',return_str) # Catalan middle dot, double prime
         return_str = unicodedata.normalize('NFKD',return_str)
         return_str = regex.sub(r'[\u0300-\u036f]','',return_str) #Splits string into simple characters + modifiers and remove them
+        return_str = regex.sub(r'\%','',return_str) #Remove comments on normalization step
 
         return return_str
 
@@ -207,8 +211,8 @@ class Article(TeXIO):
         data_pattern = regex.compile(r"^(?:[\s\w]*=[\s \{ \"]*)([a-zA-Z\u00C0-\u024F \s \d \- \. \' \– \( \) \$ \[ \] \% \’ \… \& \\ \/ \* \w \, \~ \{ \} \: \. \u0022 \` \~ \^ \¨ \# \@ \! \* \_ \+ \- \? \| \; \º \° \ç]*)(?:[\} \"]?,)$")
 
         #more generic patter to search for camp data
-        #self.generic_data_pattern = regex.compile(r"(?:\s[\{ \"\'])([\w \s]+)",self.REGEX_FLAGS)
-        generic_data_pattern = regex.compile(r"(?:\s[\{ \"\'])([^\}\"]+)")
+        #generic_data_pattern = regex.compile(r"(?:\s[\{ \"\'])([\w \s]+)",self.REGEX_FLAGS)
+        generic_data_pattern = regex.compile(r"(?:\s[\{\"\']+)([^\}\"]+)")
         
         abbreviator = Abbrv.abbrv()
         return_list = []
@@ -250,16 +254,16 @@ class Article(TeXIO):
                             camp_data = ""
 
                 #Tries to abbreviate camp data
-                if(camp_data != "" and not abbreviator.isAbbrv(camp_data)):
+                if((camp_data != "") and (abbreviator.isAbbrv(camp_data) == False)):
 
                     old_camp_data = camp_data
 
                     #Removes \ from data camp so it doesnt mess abbreviation up
-                    camp_data = regex.sub(r"[\\\{\}\'\/\~\^\º\´\`]","",Article.normalize(camp_data))
+                    camp_data = regex.sub(r"[\\\{\}\'\/\~\^\º\´\`\%]","",Article.normalize(camp_data))
                     abbreviated = abbreviator.abbreviate(camp_data)
                     #Re insert \& from data camp
-                    camp_data = regex.sub(r"\&","\&",Article.normalize(camp_data))
-                    return_list.append(" {{{0}}} = {{{1}}}".format(camp_type,camp_data))
+                    camp_data = regex.sub(r"\&","\&",Article.normalize(abbreviated))
+                    return_list.append(" \t{0} = {{{1}}}\n".format(camp_type,camp_data))
                     print("Abbreviated {0} to {1}".format(old_camp_data,camp_data))
                     log_file_data.append("Abbreviated {0} to {1}".format(old_camp_data,camp_data))
                 else:
@@ -486,7 +490,10 @@ class Citation(object):
         self.data_pattern = regex.compile(r"^(?:[\s\w]*=[\s \{ \"]*)([a-zA-Z\u00C0-\u024F \s \d \- \. \' \– \( \) \$ \[ \] \% \’ \… \& \\ \/ \* \w \, \~ \{ \} \: \. \u0022 \` \~ \^ \¨ \# \@ \! \* \_ \+ \- \? \| \; \º \° \ç]*)(?:[\} \"]?,)$",(self.REGEX_FLAGS))
 
         #more generic patter to search for camp data
-        self.generic_data_pattern = regex.compile(r"(?:\s[\{ \"\'])([^\}\"]+)",self.REGEX_FLAGS)
+        #self.generic_data_pattern = regex.compile(r"(?:\s[\{ \"\'])([\w \s]+)",self.REGEX_FLAGS)
+
+        #even more generic, needs some bug fixing
+        self.generic_data_pattern = regex.compile(r"(?:\s[\{\"\']+)([^\}\"]+)",self.REGEX_FLAGS)
 
         #Searches for citation type, removing any whitespace from citation type
         try:
@@ -587,12 +594,13 @@ class Citation(object):
                         if(abbrv.isAbbrv(camp_data) == False):
                             #Removes \ from data camp so it doesnt mess abbreviation up
                             camp_data = regex.sub(r"[\\\{\}\'\/\~\^\º\´\`]","",Article.normalize(camp_data))
+                            old_camp_data = camp_data
                             abbreviated = abbrv.abbreviate(camp_data)
                             #Re insert \& from data camp
-                            camp_data = regex.sub(r"\&","\&",Article.normalize(camp_data))
-                            self.attribute_data_dict.update({camp_type:abbreviated})
-                            print("-abbreviated journal title {0} from {1}\n".format(abbreviated,camp_data))
-                            log_file_data.append("-abbreviated journal title {0} from {1}\n".format(abbreviated,camp_data))
+                            camp_data = regex.sub(r"\&","\&",Article.normalize(abbreviated))
+                            self.attribute_data_dict.update({camp_type:camp_data})
+                            print("-abbreviated journal title {0} from {1}\n".format(abbreviated,old_camp_data))
+                            log_file_data.append("-abbreviated journal title {0} from {1}\n".format(abbreviated,old_camp_data))
                         else:
                             self.attribute_data_dict.update({camp_type:camp_data})
                             print("Failed to abbreviate journal title {0}".format(camp_data))
