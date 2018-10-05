@@ -23,11 +23,19 @@ def console_wrapper(bib_path,tex_path,tex_output_name,bib_output_name,remove_unc
 		abreviador = 0
 
 	dados = Article(tex_path,bib_path,abreviador)
+<<<<<<< HEAD
 
 
 	if format_file == ("y" or "yes" or "YES" or "Y"):
 		dados.init_bib()
 
+=======
+	
+	
+	if format_file == ("y" or "yes" or "YES" or "Y"):
+		dados.init_bib()
+	
+>>>>>>> 299d4318fb9befdf38ef872536836e93f6844d24
 		if remove_uncited == ("y" or "yes" or "YES" or "Y"):
 			dados.bib_data.cite_block_library = dados.bib_data.cull_useless(dados.tex_data.cited_list)
 
@@ -35,11 +43,18 @@ def console_wrapper(bib_path,tex_path,tex_output_name,bib_output_name,remove_unc
 			dados.current_bib_data = dados.bib_data.generate_writable_bib_object(terminator,1)
 		else:
 			dados.current_bib_data = dados.bib_data.generate_writable_bib_object(terminator,0)
+<<<<<<< HEAD
 
 	if(format_file == "n" and  (abreviador != 0) ) :
 		dados.current_bib_data = Article.abbreviate_list(dados.current_bib_data,['journal'])
 
 
+=======
+	elif( (format_file == ("n" or "no" or "NO" or "N")) and  abreviador != 0) :
+		dados.current_bib_data = Article.abbreviate_list(dados.current_bib_data,['article'])
+		
+	
+>>>>>>> 299d4318fb9befdf38ef872536836e93f6844d24
 	if tex_output_name == "default":
 		dados.write_tex()
 
