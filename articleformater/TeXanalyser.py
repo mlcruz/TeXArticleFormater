@@ -197,8 +197,85 @@ class Article(TeXIO):
         return return_str
 
 
-    def abbreviate_list(list,allowed_list):
+    def abbreviate_list(input_list,allowed_list):
         """Abbreviates every string in a list when its type is in the allowed_list"""
+        
+        #pattern to search for camp type. Matches camp type in every line
+        camp_pattern = regex.compile(r"^(?:\s*)(\b\w+)")
+
+        #pattern to seach for camp data.
+        data_pattern = regex.compile(r"^(?:[\s\w]*=[\s \{ \"]*)([a-zA-Z\u00C0-\u024F \s \d \- \. \' \– \( \) \$ \[ \] \% \’ \… \& \\ \/ \* \w \, \~ \{ \} \: \. \u0022 \` \~ \^ \¨ \# \@ \! \* \_ \+ \- \? \| \; \º \° \ç]*)(?:[\} \"]?,)$")
+
+        #more generic patter to search for camp data
+        #self.generic_data_pattern = regex.compile(r"(?:\s[\{ \"\'])([\w \s]+)",self.REGEX_FLAGS)
+        generic_data_pattern = regex.compile(r"(?:\s[\{ \"\'])([^\}\"]+)")
+        
+        abbreviator = Abbrv.abbrv()
+        return_list = []
+
+        for line in input_list:
+            old_line = line
+
+            try:
+                camp_type = regex.search(camp_pattern,line).group(1) #Try searching for camp type
+            except:
+                camp_type = ""
+
+            if (camp_type.lower() in allowed_list):
+                
+
+                #Clean line for easier regex matching
+                if(line.strip()[-1] != ','):
+                    line = line.rstrip() + ',' #terminates with comma
+                else:
+                    line = line.rstrip() #rstrip
+
+                #Remove closing terminator in a line for easier regex matching
+                if(line[-2] == '}' or line[-2] == '"' or line[-2] == '"'):
+                    line_array = list(line)
+                    line_array.pop(-2) #Removes { or " or ' from item
+                    line = "".join(line_array)
+                    line = line + '\n' #Adds \n
+
+                #Tries to capture camp data
+                try:
+                 camp_data = regex.search(data_pattern,line).group(1)
+                except:
+                    try:
+                        camp_data = regex.search(data_pattern,Article.normalize(line)).group(1)
+                    except:
+                        try:
+                            camp_data = regex.search(generic_data_pattern,Article.normalize(line)).group(1)
+                        except:
+                            camp_data = ""
+
+                #Tries to abbreviate camp data
+                if(camp_data != "" and not abbreviator.isAbbrv(camp_data)):
+
+                    old_camp_data = camp_data
+
+                    #Removes \ from data camp so it doesnt mess abbreviation up
+                    camp_data = regex.sub(r"[\\\{\}\'\/\~\^\º\´\`]","",Article.normalize(camp_data))
+                    abbreviated = abbreviator.abbreviate(camp_data)
+                    #Re insert \& from data camp
+                    camp_data = regex.sub(r"\&","\&",Article.normalize(camp_data))
+                    return_list.append(" {{{0}}} = {{{1}}}".format(camp_type,camp_data))
+                    print("Abbreviated {0} to {1}".format(old_camp_data,camp_data))
+                    log_file_data.append("Abbreviated {0} to {1}".format(old_camp_data,camp_data))
+                else:
+                    #Returns line unchanged on failure
+                    return_list.append(old_line)
+            else:
+                #Apends line unchaged to return list
+                return_list.append(old_line)
+
+        return return_list
+
+
+
+            
+
+
 
 class GenericTex(object):
     """Generic class implementing IO and diff checking to be inherited by BibData/TexData/PreambleData objects"""
@@ -396,7 +473,7 @@ class Citation(object):
         self.attribute_data_dict = {}
         self.removed_data_dict = {}
 
-       #pattern to search for citation type. matches every word after @ and before {
+        #pattern to search for citation type. matches every word after @ and before {
         self.type_pattern = regex.compile(r"(?:@)(\w*)(?:[\s]*)",self.REGEX_FLAGS)
 
         #pattern to search for label value. Matches every word-num in after the (@w+{) ending in a comma
@@ -409,7 +486,7 @@ class Citation(object):
         self.data_pattern = regex.compile(r"^(?:[\s\w]*=[\s \{ \"]*)([a-zA-Z\u00C0-\u024F \s \d \- \. \' \– \( \) \$ \[ \] \% \’ \… \& \\ \/ \* \w \, \~ \{ \} \: \. \u0022 \` \~ \^ \¨ \# \@ \! \* \_ \+ \- \? \| \; \º \° \ç]*)(?:[\} \"]?,)$",(self.REGEX_FLAGS))
 
         #more generic patter to search for camp data
-        self.generic_data_pattern = regex.compile(r"(?:\s[\{ \"\'])([\w \s]+)",self.REGEX_FLAGS)
+        self.generic_data_pattern = regex.compile(r"(?:\s[\{ \"\'])([^\}\"]+)",self.REGEX_FLAGS)
 
         #Searches for citation type, removing any whitespace from citation type
         try:
